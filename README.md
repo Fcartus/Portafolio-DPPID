@@ -17,20 +17,16 @@ Una vez publicado con GitHub Pages: `https://fcartus.github.io/<nombre-del-repos
 ## Publicar en GitHub Pages
 
 1. Crea un repositorio público en GitHub.
-2. Sube el contenido de esta carpeta **arrastrándolo** a «Add file → Upload files»: `index.html`, `README.md`, `.nojekyll` y la carpeta `img` completa. Hay que arrastrar: el botón «choose your files» no permite elegir carpetas y las fotos quedarían fuera.
+2. Sube los tres archivos de esta carpeta (`index.html`, `README.md` y `.nojekyll`) en «Add file → Upload files». Las fotos y el sonido van dentro de `index.html`, así que no hay carpetas que subir.
 3. En el repositorio: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, rama `main`, carpeta `/ (root)`.
 4. Espera uno o dos minutos y abre la dirección que muestra Pages.
 
 ## Archivos
 
 ```
-index.html            el sitio completo (HTML, CSS y JavaScript en un solo archivo; el sonido va incluido)
-img/
-  archivo-*.jpg       fotos de Archivo Vivo (pe = primera etapa, mf = módulos finales, ex = exposición)
-  soplador-*.jpg      fotos de Soplador
-  more-*.jpg          fotos de MoRe
-  perfil.jpg          foto de perfil
-.nojekyll             indica a GitHub Pages que publique los archivos tal cual
+index.html   el sitio completo en un solo archivo: HTML, CSS, JavaScript, el sonido y las 38 fotos
+             (Archivo Vivo, Soplador, MoRe y perfil) incrustadas
+.nojekyll    indica a GitHub Pages que publique los archivos tal cual
 ```
 
 ## Créditos
