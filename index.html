@@ -1,0 +1,1715 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#030405">
+<meta name="description" content="Doy forma a lo tangible y estructura a lo invisible. Portafolio de diseño industrial e interacción de Facundo Cabrera Artus.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Facundo Cabrera Artus · Portafolio">
+<meta property="og:description" content="Doy forma a lo tangible y estructura a lo invisible. Portafolio de diseño industrial e interacción de Facundo Cabrera Artus.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23030405'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='16' text-anchor='middle' fill='%23e9eef2'%3E.:%23%3C/text%3E%3C/svg%3E">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Facundo Cabrera Artus · Portafolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&family=IBM+Plex+Mono:wght@500&family=VT323&display=swap">
+<style>
+/* Layout: el agua queda fija arriba (sticky); al bajar, el panel de faders sube y ocupa el tercio inferior sin que la imagen salte */
+:root{
+  --bg:#030405; --ink:#e9eef2; --dim:#7f8a93; --line:#1d242a; --glass:rgba(6,9,11,.86); --hi:#bfe9f2; --track:#0d1317;
+  /* textos largos y UI: VT323 (trazo fino de píxel, como el primer referente); títulos: Doto (matriz de puntos, como el segundo) */
+  --f-mono:"VT323","IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --f-body:"VT323","IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --f-title:"Doto","VT323",ui-monospace,monospace;
+  --bar:52px; --panel:max(300px,38svh); --pal-ink:#e9eef2; --pal-bg:#030405;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+/* VT323 dibuja más chico que otras fuentes: se iguala su altura de x, y se evita la negrita falsa en fuentes de píxel */
+html{font-size-adjust:0.5;font-synthesis:none}
+body{font:14px/1.5 var(--f-body)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--hi);outline-offset:2px}
+
+.scene{position:relative}
+.hero{position:sticky;top:env(safe-area-inset-top,0px);height:calc(100svh - var(--bar));min-height:420px;background:var(--stage-bg,#030405);z-index:1}
+.stage{position:absolute;inset:0;overflow:hidden;touch-action:pan-y;cursor:crosshair;-webkit-user-select:none;user-select:none}
+.stage.off{cursor:default}
+.stage canvas{position:absolute;inset:0;display:block}
+.hint{position:absolute;left:50%;top:58%;transform:translateX(-50%);font:500 12px var(--f-mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink);background:var(--glass);border:1px solid var(--line);padding:8px 14px;border-radius:3px;pointer-events:none;transition:opacity .6s;white-space:nowrap}
+.hint.off{opacity:0}
+.tag{position:absolute;top:14px;left:max(16px,env(safe-area-inset-left,0px));font:500 11px var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--dim);pointer-events:none}
+
+/* grilla 8x7 */
+.grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(7,1fr);pointer-events:none}
+.cell{border-right:1px solid rgba(233,238,242,.16);border-bottom:1px solid rgba(233,238,242,.16);position:relative;display:flex;align-items:center;justify-content:center;transition:background .5s}
+.cell b{font:600 clamp(11px,1.6vw,17px) var(--f-mono);color:var(--ink);text-shadow:0 0 6px var(--bg)}
+.cell i{position:absolute;top:4px;left:6px;font:400 10px var(--f-mono);font-style:normal;color:var(--dim)}
+.cell em{position:absolute;bottom:4px;left:6px;font:400 10px var(--f-mono);font-style:normal;color:var(--dim);white-space:nowrap}
+.cell.hit{background:rgba(191,233,242,.16);transition:none}
+.axis{position:absolute;font:600 10px var(--f-mono);letter-spacing:.22em;color:var(--hi);background:var(--glass);padding:3px 7px;border-radius:2px}
+
+/* capas de modo (texto legible encima del ASCII) */
+.layer{position:absolute;inset:0;pointer-events:none;opacity:0}
+.layer.live{pointer-events:auto}
+.eyebrow{font:500 11px var(--f-mono);letter-spacing:.24em;text-transform:uppercase;color:var(--hi)}
+/* textos de las capas: siempre en la tinta de la paleta activa, con halo del color del fondo */
+.layer{color:var(--pal-ink)}
+.layer .eyebrow{color:var(--pal-ink);opacity:.72}
+.halo{text-shadow:0 0 2px var(--pal-bg),0 0 6px var(--pal-bg),0 0 12px var(--pal-bg),0 0 18px var(--pal-bg)}
+.wheelhit{position:absolute;left:0;top:0;bottom:0;touch-action:none;cursor:ns-resize}
+.wheelhit:focus-visible{outline:2px dashed var(--pal-ink);outline-offset:-6px}
+.pinfo{position:absolute;display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:46ch;pointer-events:none}
+.pinfo .count{font:500 12px var(--f-mono);opacity:.72;font-variant-numeric:tabular-nums;letter-spacing:.1em}
+.pinfo h2{margin:0;font:900 clamp(26px,3.8vw,50px)/1.08 var(--f-title);letter-spacing:.04em;text-wrap:balance}
+.pinfo p{margin:0;font-size:14.5px;line-height:1.55;font-weight:500}
+.combo{font:500 11.5px var(--f-mono);opacity:.8;font-variant-numeric:tabular-nums}
+.combo b{font-weight:600}
+.pmeta{font:500 11.5px var(--f-mono);letter-spacing:.06em;opacity:.8}
+.plead{margin:0;font:600 14.5px/1.5 var(--f-body)}
+@media (max-width:640px){.plead{font-size:13px}}
+.pbody{display:flex;flex-direction:column;gap:8px;max-height:0;overflow:hidden;pointer-events:auto}
+.pbody.open{max-height:min(34vh,320px);overflow:auto;padding-right:6px}
+.pact{display:flex;flex-wrap:wrap;gap:8px;pointer-events:auto}
+.pbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--pal-ink);background:var(--pal-bg);color:var(--pal-ink);border-radius:3px;padding:6px 11px;font:500 12px var(--f-mono);cursor:pointer;text-decoration:none;text-shadow:none}
+.pbtn:hover{box-shadow:inset 0 0 0 1px var(--pal-ink)}
+.pnote{flex-basis:100%;font-size:12.5px;line-height:1.45;opacity:.85;max-width:52ch}
+.pbtn:focus-visible{outline:2px solid var(--pal-ink);outline-offset:2px}
+/* galería recapitulada: recuadros irregulares dentro de la zona de la imagen, sin tomar toda la pantalla */
+.pinfo{transition:opacity .3s}
+.pinfo.away{opacity:0!important;visibility:hidden}
+.gallery{position:absolute;display:flex;flex-direction:column;gap:10px;pointer-events:auto;transition:opacity .3s}
+.gallery.closing{opacity:0}
+.gal-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.gal-grid{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:clamp(8px,1.4vw,16px)}
+.tile{position:relative;margin:0;border:1.5px solid var(--pal-ink);background:var(--pal-bg);padding:0;cursor:zoom-in;overflow:hidden;min-height:0;min-width:0}
+.tile canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tile span{position:absolute;left:6px;bottom:6px;font:500 10.5px var(--f-mono);background:var(--pal-bg);color:var(--pal-ink);padding:2px 6px;opacity:0;transition:opacity .2s;max-width:calc(100% - 12px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile:hover span,.tile:focus-visible span{opacity:1}
+.tile:focus-visible{outline:2px solid var(--pal-ink);outline-offset:3px}
+.gal-focus{position:absolute;inset:0;margin:0;display:flex;flex-direction:column;gap:8px;background:var(--pal-bg);border:1.5px solid var(--pal-ink);padding:10px;cursor:zoom-out;z-index:2}
+.gal-focus img{flex:1;min-height:0;width:100%;object-fit:contain;display:block}
+.gal-focus figcaption{font-size:13px;color:var(--pal-ink);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.gal-focus figcaption small{font:500 11px var(--f-mono);opacity:.7}
+.lb-nav{display:inline-flex;align-items:center;gap:8px}
+.lb-nav .pbtn{padding:3px 10px}
+#galGrid.lanes{grid-template-columns:minmax(0,1fr)}
+.lane{display:grid;grid-template-rows:auto minmax(0,1fr);gap:6px;min-height:0;min-width:0}
+.lane-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font:600 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--pal-ink)}
+.lane-count{font-weight:500;opacity:.7;letter-spacing:.06em;white-space:nowrap}
+.lane-strip{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;min-height:0;scroll-snap-type:x proximity;touch-action:pan-x;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:var(--pal-ink) transparent}
+.lane-strip .tile{flex:none;height:100%;scroll-snap-align:start}
+@media (max-width:640px){.lane-count{display:none}}
+@media (max-width:640px){.pinfo p{font-size:12.5px}.pinfo h2{font-size:22px}}
+.about{position:absolute;display:flex;flex-direction:column;gap:10px;max-width:46ch}
+.about h2{margin:0;font:900 clamp(26px,3.6vw,46px)/1.1 var(--f-title);letter-spacing:.03em;text-wrap:balance}
+.about p{margin:0;font-size:15px;line-height:1.6;font-weight:500}
+@media (max-width:640px){.about h2{font-size:21px}.about p{font-size:13px;line-height:1.5}.about{gap:7px}}
+.photo{align-self:flex-start;display:inline-flex;gap:8px;align-items:center;border:1px solid var(--pal-ink);background:var(--pal-bg);color:var(--pal-ink);border-radius:3px;padding:7px 12px;font:500 12px var(--f-mono);cursor:pointer}
+.photo:hover{box-shadow:inset 0 0 0 1px var(--pal-ink)}
+.photo input{position:absolute;width:1px;height:1px;opacity:0}
+.photo:focus-within{outline:2px solid var(--hi);outline-offset:2px}
+
+/* panel inferior */
+.panel{position:relative;z-index:4;background:var(--bg);height:calc(var(--panel) + var(--bar));display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.bar{position:relative;flex:none;height:var(--bar);display:grid;grid-template-columns:1fr 1fr auto 1fr 1fr;align-items:stretch;border-bottom:1px solid var(--line);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.tab{background:none;border:0;padding:0 6px;font:500 11.5px var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);cursor:pointer;line-height:1.2}
+.tab:hover,.tab[aria-selected="true"]{color:var(--ink)}
+.tab[aria-selected="true"]{box-shadow:inset 0 2px 0 var(--hi)}
+.tab:disabled{opacity:.3;cursor:not-allowed}
+.chev{background:none;border:0;padding:8px 18px;cursor:pointer;color:var(--ink);display:grid;place-items:center}
+.chev svg{transition:transform .25s}
+.chev[aria-expanded="true"] svg{transform:rotate(180deg)}
+.readout{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(100% + 10px);font:500 12px var(--f-mono);color:var(--ink);background:var(--glass);border:1px solid var(--line);padding:6px 10px;border-radius:3px;font-variant-numeric:tabular-nums;pointer-events:none;transition:opacity .4s}
+.readout:empty{opacity:0}
+.drawer{position:absolute;left:0;right:0;bottom:100%;background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--line);padding-block:16px 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-height:58vh;overflow:auto}
+.drawer h3{margin:0 0 12px;font:500 11px var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.pane{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:flex-start;max-width:1100px}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:200px;flex:1 1 220px}
+.ctl label,.ctl span.lb{font-size:13px;display:flex;justify-content:space-between;gap:10px}
+.ctl output{font:500 12px var(--f-mono);color:var(--hi);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--hi);margin:0}
+select,textarea{width:100%;background:#0b0f12;color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:7px 8px;font:13px var(--f-mono)}
+textarea{resize:vertical;min-height:52px}
+.check{display:flex;gap:9px;align-items:center;font-size:13px;cursor:pointer}
+.check input{accent-color:var(--hi);width:16px;height:16px;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:none;border:1px solid var(--line);border-radius:3px;padding:6px 10px;font:500 12px var(--f-mono);cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:8px}
+.chip[aria-pressed="true"]{border-color:var(--hi);box-shadow:inset 0 0 0 1px var(--hi)}
+.chip .sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--line)}
+.keys{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;max-width:420px}
+.keys .chip{justify-content:center;padding:7px 4px}
+.note{margin:0;font-size:12px;color:var(--dim);max-width:60ch}
+
+/* faders */
+.faders{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,5vw,64px);width:100%;max-width:760px;margin:0 auto;padding-block:16px 12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.fader{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0}
+/* fader de instrumento dibujado con caracteres: escala, tope [=], relleno con la rampa de densidad y lectura */
+.track{position:relative;flex:1;min-height:120px;width:min(150px,100%);touch-action:none;cursor:ns-resize;border-radius:2px}
+.track:focus-visible{outline:1px dashed var(--hi);outline-offset:2px}
+.fcv{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.flabel output{display:none}
+.flabel{display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center}
+.flabel strong{font:600 12px var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.fader.on .flabel strong{color:var(--ink)}
+.flabel output{font:500 11px var(--f-mono);color:var(--dim);font-variant-numeric:tabular-nums}
+
+.foot{border-top:1px solid var(--line);padding-block:20px 26px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.foot .links{display:flex;justify-content:center;flex-wrap:wrap;gap:10px 40px;font:500 11px var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.foot p{max-width:760px;margin:12px auto 0;font-size:12px;color:var(--dim);text-align:center}
+@media (max-width:640px){
+  .tab{font-size:10px;letter-spacing:.1em;padding:0 3px}
+  .chev{padding:8px 10px}
+  .keys{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .cell em{display:none}
+  .knob{width:44px;height:44px;margin-left:-22px}
+  .flabel strong{font-size:10.5px;letter-spacing:.1em}
+}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);background:var(--ink);color:var(--bg);font:500 12.5px var(--f-mono);padding:8px 14px;border-radius:3px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9;max-width:calc(100vw - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion: reduce){.hint,.chev svg,.toast,.cell{transition:none}}
+
+/* bienvenida: la frase se forma en caracteres y, al entrar, sus letras caen como gotas */
+.intro{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;background-color:var(--pal-bg);color:var(--pal-ink);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));cursor:pointer;transition:background-color .6s}
+.intro.leaving{background-color:transparent;pointer-events:none}
+.intro canvas.wake{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transition:opacity .5s}
+.intro.leaving canvas.wake{opacity:0}
+.intro-phrase,.intro-enter{position:relative;z-index:1}
+.intro-phrase{margin:0;font:900 clamp(30px,5.4vw,72px)/1.18 var(--f-title);letter-spacing:.04em;text-align:center;max-width:15ch;text-wrap:balance}
+.intro-phrase .w{display:inline-block;white-space:nowrap}
+.intro-phrase .l{display:inline-block;will-change:transform}
+.intro-enter{background:none;border:0;color:inherit;font:22px var(--f-mono);letter-spacing:.24em;text-transform:uppercase;opacity:0;transition:opacity .6s;cursor:pointer;padding:8px 14px}
+.intro-enter.on{opacity:1;animation:introPulse 1.6s steps(2) infinite}
+.intro.leaving .intro-enter{opacity:0;animation:none}
+@keyframes introPulse{50%{opacity:.35}}
+.intro-note{position:relative;z-index:1;margin:0;font:16px var(--f-mono);letter-spacing:.08em;opacity:0;transition:opacity .6s;text-align:center}
+.intro-note.on{opacity:.6}
+.intro.leaving .intro-note{opacity:0}
+/* teléfono: campos a 16px para que iOS no haga zoom al escribir; galería y textos más compactos */
+@media (max-width:640px){select,textarea{font-size:16px}.lane-strip{gap:8px}.gal-top .pbtn{padding:5px 9px}}
+@media (prefers-reduced-motion: reduce){.intro-enter.on{animation:none}}
+
+/* contacto bajo los deslizadores */
+.contact{flex:none;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px 30px;padding-block:8px 12px;border-top:1px solid var(--line);font:18px var(--f-mono);color:var(--ink);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.contact .lb{color:var(--dim);text-transform:uppercase;letter-spacing:.14em;font-size:14px;margin-right:8px}
+.contact .mail{user-select:all;-webkit-user-select:all}
+.contact a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--dim)}
+.contact a:hover{border-color:var(--hi)}
+.cbtn{background:none;border:1px solid var(--line);border-radius:3px;color:var(--dim);font:15px var(--f-mono);padding:1px 8px;margin-left:8px;cursor:pointer}
+.cbtn:hover{color:var(--ink);border-color:var(--hi)}
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="hero" id="hero">
+    <div class="stage" id="stage" aria-label="Plano de agua interactivo">
+      <canvas id="cv"></canvas>
+      <div class="grid" id="grid" hidden></div>
+
+      <div class="layer" id="layer-proyectos" aria-hidden="true">
+        <div class="wheelhit" id="dial" tabindex="0" role="slider" aria-label="Rueda de proyectos: arrastra hacia abajo para los proyectos del curso y hacia arriba para los de la carrera" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0"></div>
+        <div class="pinfo halo" id="pinfo">
+          <span class="eyebrow" id="pCat">Gira la perilla</span>
+          <span class="count" id="pCount">— / —</span>
+          <h2 id="pName">Proyectos</h2>
+          <span class="pmeta" id="pMeta"></span>
+          <p class="plead" id="pLead">Arrastra la rueda hacia abajo para revelar los proyectos del curso; hacia arriba, los de la carrera. Para descubrir el siguiente, sigue girando.</p>
+          <div class="pact" id="pAct"></div>
+          <div class="pbody" id="pBody"></div>
+        </div>
+        <div class="gallery" id="gal" hidden aria-label="Fotos del proyecto">
+          <div class="gal-top halo"><span class="eyebrow" id="galTitle">Fotos</span><button class="pbtn" id="galClose" type="button">← Volver al texto</button></div>
+          <div class="gal-grid" id="galGrid"></div>
+        </div>
+      </div>
+
+      <div class="layer" id="layer-about" aria-hidden="true">
+        <div class="about halo" id="aboutBox">
+          <span class="eyebrow">Sobre mí · Facundo Cabrera Artus</span>
+          <h2>Diseño cosas que se tocan y sistemas que responden.</h2>
+          <p>Soy Facundo Cabrera Artus, estudiante de Diseño Industrial en la UDP. Trabajo entre el modelado y la interacción, y me gusta llevar cada proyecto más allá de lo básico: de soldar una malla a conectar veinte teléfonos en una misma obra. Además hago trabajos freelance de diseño industrial por encargo.</p>
+          <p>No me gusta quedarme quieto; cada proyecto es una excusa para aprender algo nuevo.</p>
+        </div>
+      </div>
+
+      <div class="tag" id="tag">maqueta · portafolio</div>
+      <div class="hint" id="hint">toca el agua · cada punto es una nota</div>
+    </div>
+  </div>
+
+  <section class="panel" aria-label="Navegación del portafolio">
+    <nav class="bar" role="tablist" aria-label="Opciones del efecto ASCII">
+      <div class="drawer" id="drawer" hidden>
+        <section class="pane" data-pane="color">
+          <div class="ctl" style="flex-basis:100%">
+            <h3>Color</h3>
+            <div class="chips" id="palettes"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="glow" data-k="glow"> Resplandor</label>
+        </section>
+        <section class="pane" data-pane="letras" hidden>
+          <div class="ctl">
+            <span class="lb"><label for="ramp">Caracteres</label></span>
+            <select id="ramp" data-k="ramp">
+              <option value="digitos">Dígitos</option>
+              <option value="binario">Binario</option>
+              <option value="clasico">Clásico</option>
+              <option value="bloques">Bloques</option>
+              <option value="frase">Frase propia</option>
+            </select>
+          </div>
+          <div class="ctl" id="phraseCtl">
+            <span class="lb"><label for="phrase">Frase</label></span>
+            <textarea id="phrase" data-k="phrase" rows="2" spellcheck="false"></textarea>
+          </div>
+          <div class="ctl">
+            <label for="size">Tamaño de letra <output id="o-size"></output></label>
+            <input type="range" id="size" data-k="size" min="7" max="16" step="1">
+          </div>
+        </section>
+        <section class="pane" data-pane="rapidez" hidden>
+          <div class="ctl">
+            <label for="fall">Caída de la gota <output id="o-fall"></output></label>
+            <input type="range" id="fall" data-k="fall" min="0.3" max="2" step="0.05">
+          </div>
+          <div class="ctl">
+            <label for="flow">Corriente del agua <output id="o-flow"></output></label>
+            <input type="range" id="flow" data-k="flow" min="0" max="2.5" step="0.05">
+          </div>
+          <div class="ctl">
+            <label for="spread">Expansión de las ondas <output id="o-spread"></output></label>
+            <input type="range" id="spread" data-k="spread" min="0.4" max="2" step="0.05">
+          </div>
+        </section>
+        <section class="pane" data-pane="sonido" hidden>
+          <div class="ctl" style="flex-basis:420px">
+            <span class="lb">Tonalidad <output id="o-key"></output></span>
+            <div class="keys" id="keys"></div>
+          </div>
+          <div class="ctl">
+            <label class="check"><input type="checkbox" id="showGrid" data-k="showGrid"> Mostrar grilla y notas</label>
+            <label for="q">Filtro de agua (resonancia) <output id="o-q"></output></label>
+            <input type="range" id="q" data-k="q" min="1" max="40" step="1">
+            <label for="vol">Volumen <output id="o-vol"></output></label>
+            <input type="range" id="vol" data-k="vol" min="0" max="1" step="0.01">
+            <p class="note">Columnas: grados 1ª a 8ª. Filas: el mismo modo de la tonalidad empezando en cada grado, de grave (arriba) a agudo (abajo).</p>
+          </div>
+        </section>
+      </div>
+      <div class="readout" id="readout"></div>
+      <button class="tab" role="tab" data-tab="color" aria-selected="false">Color</button>
+      <button class="tab" role="tab" data-tab="letras" aria-selected="false">Letras</button>
+      <button class="chev" id="chev" aria-expanded="false" aria-controls="drawer" aria-label="Abrir opciones del efecto ASCII">
+        <svg width="26" height="14" viewBox="0 0 26 14" aria-hidden="true"><path d="M2 2 L13 12 L24 2" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
+      </button>
+      <button class="tab" role="tab" data-tab="rapidez" aria-selected="false">Rapidez</button>
+      <button class="tab" role="tab" data-tab="sonido" aria-selected="false">Guía sonido</button>
+    </nav>
+
+    <div class="faders" id="faders">
+      <div class="fader" data-i="0">
+        <div class="track" tabindex="0" role="slider" aria-label="Proyectos" aria-valuemin="0" aria-valuemax="100"><canvas class="fcv" aria-hidden="true"></canvas></div>
+        <div class="flabel"><strong>Proyectos</strong><output>0%</output></div>
+      </div>
+      <div class="fader" data-i="1">
+        <div class="track" tabindex="0" role="slider" aria-label="Sobre mí" aria-valuemin="0" aria-valuemax="100"><canvas class="fcv" aria-hidden="true"></canvas></div>
+        <div class="flabel"><strong>Sobre mí</strong><output>0%</output></div>
+      </div>
+      <div class="fader" data-i="2">
+        <div class="track" tabindex="0" role="slider" aria-label="Interacción gotas" aria-valuemin="0" aria-valuemax="100"><canvas class="fcv" aria-hidden="true"></canvas></div>
+        <div class="flabel"><strong>Gotas</strong><output>0%</output></div>
+      </div>
+    </div>
+    <div class="contact">
+      <span><span class="lb">correo</span><span class="mail" id="mail">Guillermo.cabrera@mail.udp.cl</span><button class="cbtn" id="copyMail" type="button">copiar</button></span>
+      <span><span class="lb">github</span><a href="https://github.com/Fcartus" target="_blank" rel="noopener">github.com/Fcartus ↗</a></span>
+    </div>
+  </section>
+</div>
+
+<footer class="foot">
+  <p>Sonido: water drop one shot dry (extraído de Freesound).</p>
+</footer>
+<div class="intro" id="intro" role="dialog" aria-modal="true" aria-label="Bienvenida">
+  <p class="intro-phrase" id="introPhrase" aria-label="Doy forma a lo tangible y estructura a lo invisible."></p>
+  <button class="intro-enter" id="introEnter" type="button">toca para entrar</button>
+  <p class="intro-note" id="introNote">con sonido · en iPhone, desactiva el modo silencio</p>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const WAV_B64 = "UklGRg6xAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YeqwAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAAEAAAAAAAAA/////wAA//8AAAAAAAAAAP//AAAAAAAAAAAAAP////8BAAAA//8AAAAAAAAAAAEAAQAAAAAAAAAAAP//AAAAAP//AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAP//AAABAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQABAAEAAQAAAAAAAQABAAAAAQAAAAAAAQABAAEAAAABAAAAAQABAAAAAQABAAEAAQAAAAEAAQAAAAAAAAABAAEAAQAAAAEAAQABAAEAAQABAAEAAAABAAEAAgABAAEAAgABAAEAAQACAAEAAgABAAIAAQACAAIAAQABAAEAAQABAAEAAQACAAEAAgACAAEAAgABAAEAAQACAAIAAQACAAIAAQACAAEAAQABAAEAAQABAAEAAQABAAEAAQAAAAEAAgABAAEAAQAAAAAAAAABAAAAAQAAAAAA//8AAAAAAAAAAAAAAAABAP///////////v/+//7/AAD////////+///////9/////v/+//////8AAP3//f/8//z//v/+/////v/9//7///8BAAAA/v/+/wEAAAAAAAAAAAAAAAIAAgACAAIAAgAAAAIAAAABAAMAAgD//wAAAAACAAEAAwACAAIAAQACAAAAAgACAAIAAQAAAAIAAAAAAAEAAAAAAP//AAAAAP//AAD//wIAAgAAAAIAAAAAAAIAAwAAAP7/AAD//wAAAAAAAP//AAAAAAAAAQAAAAAAAgADAAAA//8BAAIAAwAAAAMAAAADAAMABAADAAMAAwACAAQAAwADAAMA/f///wIAAwAEAAQAAwAGAAUABAAJAAcABgADAAYACgALAAcACAAHAAcACgAOAAsACwALAAsACgAKAAgABwAIAAcABwAIAAcACAAEAAgABAABAAAABAABAAAAAAD///z//P/8//f/+//7//j/+P/z//f/9//z//T/9v/z//L/8v/u/+3/8//t/+7/7P/s/+3/7f/x//L/6P/t/+3/7f/s//b/8f/2//D/8P/w//D/9f/w//D/9f/w//X/9f/1//X/+//1//X/9f/1//X/9f/6//T/AAAAAPr////////////6/wAAAQAAAAAAAQAAAAYABwAGAA0ABgAMAAYADQANAAwADQANAA0ABgANABQADgAOABQADgAUABUAFQAUABUAFgAVABUAFgAdABwAHQAOABYAFwAWABYAFgAPABAADwAQAA8ADwAXABgAFwAXABAAGAAHABAAEAAIAAcACAAIAAgAEAAIAAgABwAQAAkACAAIAAAAAAAJAAkAAAAHAAEA//8BAPf/AAD3//f/9//3//f/9//u//f/9//t//f/9v/u/+3/9//3//b/7v/2/+P/7f/t/+3/7f/t/+3/7P/t/+z/7P/t/+L/4v/j/+L/4v/h/+L/6//s/+z/6//h/+z/4f/g/+H/4P/W/9X/4P/V/9X/1f/g/+D/4P/V/9T/4P/e/+r/3//f/9//6v/q/97/6v/e/97/3//e//T/9P/p/+n/6f/1//X/6P/o/+j/3f/o/+n/6f/0/+j/6P/o/+n/5//n/9z/2//b/+j/5//n/+f/9P/n/9r/2v/n/+b/5//a/+b/2f/m/+b/5v/n/+b/5f/m/+b/2P/m/+b/2P/L/8r/1//X/9j/1//W/9f/1//J/8n/yf/I/9f/yf/I/9b/yP/W/8j/yP/W/7n/1v/W/9X/4//k/9T/1f/j/8b/1f/T/8X/xP/F/8X/0//U/9P/4v/T//H/0v/g//H/4f/i/+L/4v/S/+L/8f8AAPD/4P/w//H/8f/v/+//AADw/wEA8P8AAAEAAAAAAAEAAAAAAAAAAQD//wEAEQARABAAEAARABAAIgAAACEAEQAjACMAEQASABEAEAAiABAAEQARABEAAAABAAAAEQAAAAAAEQASACMAIwARACMAEgAkABIAJAAkACQAJAASACUAEgAkAAEAEgD//xIAEgAUABMAFAASAP//AAABAAAAAAABABMAAAAAAAEA//8BAAAA7f8AAAAA//8AAP//AAAAAAEAAAABAO3/AAAAAO3/7f/t////AAD//wAA7P8BAAAAAQD//wAA//8BAAAAAADr//7/AAAAABUAAAAUABUAFQAUAAAAFQAVABUAFgAAABQAFAArABQAKgAqABQAFQAVABYAFQAqAAEAFgAWABUAFgArACsAKwArACsALAArACsAKwBCAEEALABBACsAQgAtAEIAQgBDAEIA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qABmAEMAIgBlAMoAhwBkACAAAgBkAIcAZQBlAEIAIwBEAGMAQgD//wAA//8hAEQAQwBCAEQAIwD//wAAQgCFAKgAhgBCAAAAIgAAAP//3/8BAEQAQgBlAAIA//8hAGQAiAAiAP//AAAgAGQAAAD+/yIAQwCGAIYAqAAiACEAAAAhAEMAhgBkAEIAAAAgAEIAIgD//5z/vf///0MAhgBlAEMARABDAAEAvf+8/57/AABkAGYAZQBCACEA4P/f/+D/3/+8/+D///8iACEAQwAhAAEA3v+//9/////+/0MAYwBlAEQAAQAAAAEAAQAAAL7/vP8iAIUApwBDAL3/vf/f/9//3//e/9//AAAAAN7/vv++/97////f/5z/e/+9////AQDe/73/vv8AAAAA//+9/53/fP++/5z/3/9BACEAIQDf/97/vf/f/wAAAQAAAAAAIQAhACAAAQDf/7//vP+9/wEAIgABAP//IAAAAAAA4P+c/5z/3v/e/77/vP/g/yEAQgABAJv/m//f////AAABAOD/AABCACAAvf96/73/vv/e/wEAAQABAAIAvv98/3v/e/97/3v/nP++////IADf/5z/e/96/5z/vv+c/5v/fP++/9//vf+9/zn/Wv+c/7//nf96/3z/fP+d/77/m/+c/3v/e/+c/73/vv++/5z/fP9Z/1z/fP+d/53/wP++/5z/nf98/3r/nv+c/73/nv98/33/vv+//77/nf+c/77/3/++/73/vv+c/77/3v++/77/nf+c/9//3f/f/9//AADf/+H/vv+b/3z/nv++/57/v/8AAAAA//++/77/vv/f/97/3//e////AADf/97/v//e/+H/vv/f/9//v//f/9//vv/e/73/3//e/9////8BAAEAAAABAP//IQAhACEAQABCACEA//8hAGQAQwBCACEA//8hAEEAIQD//77/AABDAGMAQAAgAP//QgAhACEAQgABACEAQQBBAGQARAAgACIAIQD///7/3////0IAYwBiACEAAAABACEAIQAhAAAAIABCAEEAQQBBACAAAQAgACEAQgAAAAAAAgAAAN7///8BAP//AABAACAAAQDe/9//3//e/9//4P///wEAAQAAAAEA3//f/53/nv++/wAAAAAhAAAA3/+f/53/n/+//wAA//8gAP////+//7//nv+//77/v//e/9//3/8CAN//AQDe/77/nv99/7//3/8gAAAAAAAAAOD/AAAAAN7/n/+//+D/AABBACEAIAAhACIAIAABAN//3v8gAEIAYwCDAEAAAAAAACEAAAAAAAAAIgBiAGIAQQAiACAAQQAhAAAAAAAAACEAYwCjAIQAYgBBACAAHwAAACAAQgBBAEAAYQCBAGEAQQABAAAA4P8gACAAQQAhAEEAIABBACIAIAD//yAAQABAAGEAYABAAEEAYQBhAEAA////////AAAgAB8AIAD//yEAAQAAAAAAAQAAAP//AAAgACEA//8AAAEAHwD//wAA3v8BAAAAIAAfAOD/AADg/wAAAQABAAEAAAAgACIAAAAhAAAAIAD/////v//f/wEAIgAAAAAA3//f/8D/v/+f/37/X//A/8D/4P+//5//Xv+A/4D/oP+A/3//X/9//37/oP9+/4D/vv/e/7//nv9g/4D/v//B/+D/vv/A/6D/n/+g/4D/wf+//8D/4f/A/7//wP/A/7//v/+e/7//wf+f/6D/n//g/wAA3/+e/3//f//f/+H/AADg/+H/AQAAAN//4P/A/7//4P8AAAAA3v//////AAAAAOD/AQAfAAAAAADg////AAABAAAAAAAAAAAAAAD//+H/AAABACEAIAAAAP//AAABAAAAAAD//+D/AAAAAAEAAABBAEEAQAD//+D/wP/g/wEAAAAAAAAAAAAhAAEA4f+g/6H/wP/B/wAAAAAAAAAA4P/A/8H/4P/A/8D/4P/A/+D/4P8CAAAAwf+C/4H/gf/B/+D///8AAOD/4P/g/6L/Yf+B/4L/oP///wAAAQDh/6H/oP/B/8H/wf/h/8D/wf+//+H/4P8BAAAA4f/f/7//AADg/wAAAAAAAAAAAQAAACAAAAAAAMH/wv/g////HwAAAP//4P8AAOD/AQAAAOL/AAAAAAAAPwBAAP7/IQD//+H/4P/g/wAA//8fAB8AIAAAAOH/4f/g/wAAAADg////AQDh/wEAAQAAAOH/AQAAAP//HgAfAAEAPgA+AB8AAQABAP//PwBeAB8AAQA/AEAAXwA+AB8A//8AAD4AAAAgAD4APwBdAF4AQAAgAD8AXgBeAD8APwAgAD8APwBeAH4AfgBeAB8APgABAAAAHwAgACAAIAAgACAAHwAgAB4AAQD//x8AHwA+AD4AIAAgAD4AHwD/////AAAgAD8AHwAfACEAAQABAAEAHwAAAAEA/v8AAB8AIAAgAAAA4v/h////IAAAAOD/AAABAB8AIAAeAAEAAAABAB8AHgAAAB8AHwAAAAAAAQDh/wAAAQAgAB8AHQAgACAAAAD//+H/4f//////AQD//wAA/v8BAP//AADB/wAAAAD//wAA4P/h/wEAAQAAAOL/wv/h/8H/4P8CAP//AQDh//3/4v/i/wAA4v8AAOH/AAAAAP//AADi/+D///8AAP//AQDi/9//HwAAAAEAAAAAAP//4f/h////AAD//wEAAAD//x8AAAAAAP//4f8AAAAAHwAeAB8AHwAfAB8AAAAAAAAAAAABAB4APgAfAD4AHgABAAAA/v8AAB4AHgAfAB4AAAABAAAAAAAAAP//AAAeAB8APAAeAB0AAAD//wAAAAABAAAA/////wAA//8AAOH/AAD//wEAAAAAAOD/AQAAAAEAAQAAAOL/4v+k/8P/4v/i/8P/wv/g/+L/AQABAAEA///h/+P/AQDE/8T/wv/D/+H/xP+k/8P/pP/D/6X/pv+l/6b/pf+l/4j/aP+G/2n/h/+i/4b/pP+l/4f/hv+l/4f/h/9K/2f/Z/+l/+L/xP+l/2n/h/+G/6T/iP/E/8P/xP+l/8P/xf/D/8T/pP/E/+P/4v/F/8T/pf/E/8L/w/+G/4j/hv+H/8L/pf+l/8L/4v/D/8P/pf+l/8L/xP/h/wIA///i/wAAAADh/8T/4v8BAP//HgABAAAAAAAeADwAHQAeAAAA//8AAB0APAAdAB0AAAAeAB0AHgAAAAAAHwAfAB8AHgAfADwAPAAAAB0AAAAeADsAOwA8AD4AHgAfAP//AQAeAP//AQAdADwAPAA8AD0AHQD//x4AOwAfAP//AAAAAB8APAA7AB4AAAAdAB4AHgAdAB4AAAAAAOH/5P//////HgAAAOP///8AAAAA//8AAP//HgAeAB0AAAD//x4AAAAfAAAAAQAAAB4APAAfAP//AAABAAEA//////////8eAAAA//8dAB4AAADj/x4AHQABAAEAAADi/wAAAAAAAOH/4v///xwAHQA7AB4AHwABAB0AAQAAAB8AIAA6AB4AHQAdAP//HgD//x4AHQAAAB4AHAA6ADwAPAAeADwAPABYAFkAOgA7AFcAWABYAJQAdgBaAFgAWQBYAFcAOwAcADsAHgACADsAOgAdAB0AAAAdAB0AHQD//wIAOgAfADoAHQAcAAAAHQA7ADoAOwA7AB8AHAA7AB4A//8eAP////8AAP//4/8AAP7////i/+L/4v/G/8T/4v/k/+P/AADj/wMA/v///+L/4//j/+X/AQD//+T/AADj/8X/4//F/+P/4//j/+T/AAD//wAAAAAAAOP/AADi/wEAAAD//wAAHgAbAP////8BAB0AAAD//////v8eAP//AQAAAOP/4//H/+T/AQAAADkAHQAAAAEA5P/k/wAAHAAcAAAAAAAAAAEAAAAAAOL/AADH/8b/5f/i/+P/AAD/////4//j////AADi/wEAAAABAP/////i/8X/5P/k/wAA4//j/+T/AADj/+P/5P/H/8j/4//j/8b/5P/k/+T/q//j/6n/xv/F/+P/xv/G/8j/x/+r/8f/yP+q/8j/5P/G/8f/5P/j/+T/x//H/6r/q/+q/+P/x//G/8f/5P/i/8f/xv+r/+T/4/8CAAEAAAD//8b/4//j/8f/x//I/+P/x//k/+T/4v/H/wEA/v/j/+P/5f/G/8f/4/8BAAAA//8AAAAAAADk/8j/4//j////5P8AAOT/5P8AAOT/yP/H/6z/rP/H/8j/yP+q/8j/x//J/8j/q//H/8j/yP/I/8j/5P/l/8j/5P/I/8f/5P/k/+P/5P/j/+P/4//k/8f/x//I/+X/5P/k/+L//v8AAAAA5v/j/wAA4//j/+P/4/8AAAAA5P/k/+X/5f/l/8n/4/8AAAEAAAAAAMj/5f/l/+X/yP/m/+P/5P/k////AgAAAAEAAQAAAP7/4////+b/AAAcAOX/AAAAAAEAAQD//wAAAAD//wAA/////wAAAAAAAOb/5P/k/+T/5f///wAA5f/j/+T/yf/l/8j/yf/l/+T///8BAAEA///l////AADk/+T/5P8AAP//AADk/+T////l/+T/yP/k/+T/AAAAAP//AAABAP//AAAAAAAAAQAbABwAHAD/////HAAaADYAHAAAABsANwAaAB0AGwA4ADcAHAAcADgAHAAcABoAGwD//x0A5f8aABsAGwAbABsAOAAbABoAGwAbABoAGwA2AFMANwAbABwA5f8cABsAHAAcABsANgAcABwAGQAbABsAGwD//xwAHAAbADYAGwA2ABwAHAA3AFEANwA3ABsANwAbAFAAOAAbADcANwA1ADUANgBSADcANgBRADcANwA2ADYANgA2AFIAUQBTAG4AUgBRADYAHAA1ADYAUQBRAG0AawBQAFIANgA0ADcANgAaADUAUABsAGsAUgA4ADYAGwAbABsANgA1ADYA//8bAAAA//8AAAAAAAD//wAAGwD//wAA//8AAAAA//8BAOb/5v///xsAGgAaAAAA////////GgD/////AAABABsAGwABAAAA//8AAOb/yv/k/+X/5f///+X/5v/m/8z/y/+w/8v/sP/L/+X/zP/k/+f/5f/M/8z/sf+y/8v/lf+w/8v/5P/k/8z/5v/m/8r/5f/L/+X/zP/l/+X/5v/m////5//m/+f/5//M/+X/5v/m/+X/5f/m/8v/y/+x/7D/y//m/8n/5f/m/wAA///L/83/zP/n/+b/zP8AAAAAAQABAAEA5f8AAAEAAAABAOX/5v8AAOT/5v8AAOf/AAAAAAEA///l/wAAAQAAABsAAAAbAP7/GgABAAAAGgAaAE8ANQA0ADUAGwAbABoAGgA0ADIANQA0ADQATgA0ADQANAAAADMATQA0AEwANAAaABoAGgD//xkAGgD//xsAAAAaABkAGgAZAOb/5f/o/wAAzf+y/8z/5v/m/+b/zP/n/83/zP/N/8z/5v/m/+b/AADn/83/zP/m/7T/zv///+f////n/+b/5//L/+b/5v/m/87/zf/M/+b/5v/L/+b/zf/N/87/zP/M/83/5f/n/+f/y//n/+j/5//n/+b/zf/N/+b/5v/m/+b////n/83/zf/N/83/s//n/+f/zv/M/+j/zP/m/+X/zf/N/7P/zv+b/87/tP/O/87/zv/n/+f/zf+z/83/zP/o/+j/5v/n/83/zf8BAM3/5f/N////zv/n/83/5v/n/+b/zv/m/+b////m////5v8BAAAAAAAAAP//AAD//wAAAQDm/+f/5v///wEA5f8AAOf/AQAAAOj/AAAAAAAA//8AAOf/AAAAAP//AQD//xkAAQAYAP7/MQAZABoAGQAYABgA//8ZADIAGAAZABkAGQAYAAIAAAAAABkAAQD//wEAAAAAABkAAAAZAP//AQAAAAAAAQD//wAA5v8AAOf/5//n/+j/AADp/+f/AADn/+n/zv/n/+f/zv8BAOf/AQDo/wAAAAABAAEA//8ZAAAAAQAAABgAAAAYABkA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EgAAAAAA//8AAP//7f8TAAAAAAAAAP//AQAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAEA7f///+3/AQDt/+7/7v8AAAEAAAAAAAEA7f8AAAAAAAAAAAEAEgATABMA//8SAP//FAAAABEAEwASABIAEwABACYAJQATABIAAAATAP//EwABAAAAEgAAAAEAEgATABMAEgASABIAEgATABIAAAASACQAEwAlABIAJQABABIAJQAUACQAAAAAABIAAAAAAO3/AAABAO7/AADu/+7/AADu/+7/7//u/9v/7v/b/9z/7v/u/+7/7f/v/9z/7v/u/9v/7v/c/+7/2//b/9v/2//b/9z/yv/J/8n/2v/J/8r/3P/c/7f/yv/K/8v/yv/J/8n/2//K/9z/yf/L/9v/yv/d/9z/yf/c/9z/yv/K/8r/yv/K/7n/uf+4/7n/y/+4/8v/uf+5/8v/y//c/9z/3P/u/+7/3P/c/93/7v/u/+//7//u/+7/7f/v/9z/3f/c/9z/3f/d/+7/3P/u/+7/3P/v/+7/7v/u////AADv///////u////AAAAAAAAAQAAABIAIwARABEAAQASABIAEQARACMAEgARACIAAAARABEAIwAiABMAIwARABEAEgAAAAAAAAAAAAEAAAAAAAAAAAARAAEAAAASAAAAAAARABEAEQAjACIAIwAjABIAIwAjACMANAAzADQANABEACIANABEACIARQBFAEQARgBFAEUARgBFACMARQA0ADMARQA0ADQAMwAzADQARQA0ADQANAAzADMAMwAzADMARABFAEQARABEAEQARABEADMANAAzADMAMwAyADIAMwAzADIAMgAyACIAIgAzADMAMgAyADMAIgAzACIAIQAiACEAIgAyADMAMgAzACIAMgAiABEAIQAiACIAIQAQABAAIgAiACEAAAAQACIAEQAiACIAIQAiABEAIgAQAAAAIQAQABAAEAAhAAAAEAARABEA//8RABEAAAABAAAAEQAAAAAAAAAAAAAA///v//D/7////wEA7/8BAP//7/8RAAAAAAAAAP//AAAAAP//AAABAP//7////+//8P/w//D/7//w/9//8P/w//D/3//Q/8//3//P/9//3v/P/8//z//f/+D/zv/f/87/4P/f/+D/3//w//D/3//w//D/8P/w/+D/8P/h/+D/4P/f//D/4f/f/9//4P/Q/+H/3//g/+D/3//w/+D/8P/f/+H/8P/g/+D/4P/g/+D/8f/x/+D/7//x/wAA4P8BAPH///8AAAAAAQD//wAAAAAAAP//8P/w////AQAAAAAA8P/w//D/8P/x//H/AADv//D/AADx/+H/4f/x/+H/4P/g//D/4P/h/+H/4f/h/+D/8P/S/+H/0f/h//D/4v/h/+D/4P/i/+H/4f/h/+D/4f/h/9H/4f/T/9D/0f/R/+L/0f/i/+L/4P/h/+H/0P/S/+L/0v/S/9L/wv/D/9L/0v/S/9H/wv/C/9L/w//R/9L/0v/S/9L/0//S/9H/w//S/9P/w//C/9P/0//T/9P/0//T/+H/4v/h/9P/0//i/+D/4f/i/+L/4v/R/+H/0//T/9P/4//T/9L/1P/T/+L/1P/S/9P/4v/i/+H/8v/i//L////x//H/8v/x/+L/4v/x/+H/8v/j/+L/8f8AAPH/8f/w/wAA8f/x//H/8f/x/wEA8f/y//L/8f/y/wAA8f/x/wAA8v8AAAAA8v8AAPL/AADx//H/AAD//wAAAAAAAAAAAAAPAA4ADwAAAA4ADwD//wAAAADy//H/8f/i/+P/8v/y//H/4//j/+L/8f/y/9T/4//j//L/4//j/+T/8f/U/9T/4//U/+T/1f/k/+T/4//U/+P/4v/k/+T/8v/G/+P/4//y/+T/4//x//L/1f/j//L/8f/j//L/8//x/wEA5P/y//L/8v/x//L/8v/z/wAA8v/y//L/4//j//H/5P/y/+P/8v/y/wAA8v/x//P/8f8BAAEA//8AAAAAAAAAAA0ADgAOAA4AAAAOAAAADgAOAAAADQAOAA4ADwAPAA4ADgAAAAAAAAAOAAAADgAPABsAHAAPAA0A//8OAA0ADgANAA4ADgAOAA8ADwAbABwADgAOABwADgAcAA4AHAAcABsAHAAbABsAHAAOAA4ADgAbAA4AGwAOABwADQAOABoAGwAOABsAGwAbABsADQANAA4ADgAbABwAAAAcAA0ADQAOAA4AAAANAA4ADgABAA0A//8AAAAA8v8BAAAAAQD//wAAAAAAAA0AAQAAAAAAAAAAAA0ADQANAAAAAAABAAEADQANAA4A//8BAAAADQAAAAAAAAANAP//AAANAAAAAQAAAAAADQANAA0A//8BAAAA//8BAA4AAAANAA0ADQAAAA0ADQAOAA0A//8NAA4ADQAAAAEADQAAAA0ADAAOAP//AAABAA4ADgAaABoAGgAbACcANAAnABoAGgAnACcAKAAnACcAJwAmACgAJwAoACgAGgAnACcAJwAnACcAGQA0ADMAGgAmACcAMwAnACYAJgAmACcAJwAmADMAJgA0ADMAJgAzACYANAAzADIAMwAmACcAJgAzADIAJgAZACYAJgAmACYAJgAbABkAGgAmABkAJgAlABoAGQAaABkAGQAZABkAGQAZABoAGAAmABkAGAAZABoA//8MABkADQAaABoADQANAAwAGQAZAA0AGQAaABoADAAZABkAJAAmABkAGAAMAAwAGQAZABkADAAMABgAAAAMAAwADAAMAPT/AAAAAP//DAD//wwAAAAAAAwAAAAMAA0AAAAAAAwADQABAAAA//8MAAEA8/8BAAAAAAAAAAAAAAAAAAAA9f/0/wAAAAABAPT/6P/1//T/6P/o//T/8//n/+j/5//o//X/9P/o/+f/6P/o/+j/6P/c/+n/6P/o//T/6f/o/+j/5//o/9z/6P/o/+j/6P/n/+j/3P/d/+j/3P/R/+j/3f/o/+j/3f/c/97/0f/R/9D/xf/d/9H/3f/c/93/0f/c/+j/3P/d/93/3f/p/93/6P/o/+n/6P/o/93/3f/R/93/6P/o/+n/6f/d/93/3f/R/9L/0v/e/9H/0v/S/9L/0v/S/9H/0v/S/9L/0v/d/93/3v/e/9L/3v/d/97/6P/d/+n/3f/o/+n/6v/p//X/6f/1//X/9f8AAPT/6f/1//X/6f/1//X/AAD0//T/9f8AAAAAAQABAAEAAAAAAP//AQD/////AAAAAAAACwALAAEACwAKAAAA//8LAAAAAAAAAP//AAAAAAAAAQABAAAACwAMAAAACgAAAAAA//8AAAAACwAAAAAACwALAP//AAAAAPX/AAABAAAAAQABAAAAAAAAAP//AAD1/wAAAAAAAPX/9v/1/wAAAAD///X/AAAAAAAAAQALAAAACwAAAAsAAAAAAAwAAAD1/wAAAADr//X/9v8AAPX/9v/2//X/9f/1//b/9v8AAAEA9f/1/////////wAA///1/wAAAAAAAPb/AAAKAAAACwALAPX/CgAAAAAAAAAAAAsAAAAAAAsACgAMAAAAAAAKAAoAAAALAP//AAAAAAoAAQAAAAAAAAAAAAAA9v8AAP//AAD/////AAAAAAoAAAAAAP//AQAAAAEACgAAAAoAAAAAAAAA9v/1/wAACgAAAAAAAAD1//f/AADs/+v/9f/2/wAAAAD2//X/AAD2/wAA9v8AAPb/9v/1//b/9//1/+z/9v/r/+v/9v/2//b/9v/3//b/9v/s//b/9v/2/+z/7f/2//b/9f8AAPb/9v/t/+z/4v/s/+z/4v/t/+L/4//i/+z/4v/t/+3/7P/j/+P/7f/s/+3/7P/2/+3/9v/3/+3/7P/2//X/9v/2//b/9v/3/wAA9v8AAPb////2//f/9v/3//b/9v/2////9/8AAPb/AAAAAPb/AAD//wAACQAJAAAAAAAAAAAACgAAAAoAAAABAAkACQAJAP//CQAKAP//CgAJAAkACQAKAAAAAAAKABMAAQD//wkACgATAAAACgAKAAgACgAKAAkACgAKAAkAAAD//wAACgAKAAoAAAAAABMACQD//wAAAAD3////AQD//wEAAAAAAAoAAQAJAAkAAQAAAAAAAAD//wAAAAAAAPb/9//4//f/9//u/+3/7v/u/+7/7f/u//f/9//v/+7/5f/l/+X/2//t/+X/7v/t/+X/7//2/+7/7v/u/+7/7v/3/+7/9//u/+3/7v/u//f/9//3//f/AAAAAP//9v///wAAAAAAAAAAAAABAAEA//8AAAkAAAAJAAAAAQAAAAAAAAAJAAAACQAKAAAACQAJAAgAEgAIAP//CAAJABIACQAIAAgAEQASABIAEQAZABIAGgARABoAEgAjABoAGQAaABIAGgAaABoAGQAaACMAGgAaABkAGgAZABIAGQASABoAGgAaABEAEQAZABkAEQARABEACAAaABkAGgAaACIAGgAaABoAGQAiABkAGQAZABEAGQAiABkAGAAhABkAEAARABAAEQARAAgAGQAQABEAEQARABAAEQAQABEAEQAIABEAGAAQABAACAARABAACQARAAgAGAARAAgACAAQAAAACAAIAAEA//8JAAgACAAAAAEAAAAAAAAAAQABAAAAAAAAAPn/AAAAAPj/+P8AAPf/9/8AAPn/+P8AAPD/+f/4/wEA+P/3//j/AAD//wAAAAD4//j/+f/4//j/+P/4//D/+P/w/+j/8f/w//D/8P/x/+//6P/o//H/8P/w//D/8P/w//j/+f/5//n/+P/4////+P/5//n/+P8AAAAA+P/4//j/AAABAAEAAAD4/wEAAAD4//n/+P/5//n/8f/4//n/8f/5//H////4//j/AQD5//H/+P/5//n/+f////j/+P/x//L/+f/4//j/6f/5//j/8f/x//n/8f/p//H/8v/p//H/8v/x//H/8f/p/+r/8f/x//H/+P/y//H/8f/x//H/8f/y//L/8f/x//H/8v/5//j/+P/x//L/8f/x/+r/8f/x/+v/8f/r/+v/6//j/+r/6//q/+L/6v/r/+r/6v/q/+v/6v/5/+r/8f/q//L/6v/x/+v/6//y//L/8v/q//j/+f/y//n/8v/x//j/+P/5/wAAAAAAAPn/AAAAAPn/AAD5/wAAAAABAPn/AAD///n/AAAAAAAAAAAAAPn/AAAAAAAAAAD4//n/AAAAAAcAAAD//wAAAQAAAAAAAAANAA4A1//r/wAA+v8AAPn/8v8AAAAA8//y/wAAAAD///n/+v8BAAAA///5//n///8BAAcAAAAAAAcAAAABAAAAAAAHAAAA+f8GAAAAAAD5/wAA//8AAPn/AQAHAPn/8v8AAAEA+f/6//r/+f/5//r/8v8AAAYA+f8AAAAA+f/z//r/AAABAPT/BwDs//P/EwD5//P/8/8AAPT/AADy/wAA+f/6//n/8//t//n/BwAAAPP/AAD6/wAAAAABAAAAAAABAAAABwAGAAAA+v///wcABgAGAAYABgAAAAYABgD/////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAD6//r////6//r/+v/6/wAAAAD6/wAABgAAAAAAAAAAAAAA//8AAAAA+v8AAAAAAAAAAAYAAAAAAAAAAAAAAPr/AQD6/wAA+v/6//r/AAD6/wAAAAAAAAAAAAAAAPr/+f8AAAAA+v8GAAAA+v8AAAAAAAABAAAAAAABAP//AAAAAAAAAAABAAAAAAAAAP//+v/7//r/+//6/wAA+v////r/+v/6/wAAAAD7/wAAAAAAAP////8GAAAAAAD//wUABgAGAAYACwALAAsADAALAAwACwAMAAYACwALAAsACwAFAAUACgALAAUADAALAAoADAAMAAUAAAAFAAUABgAFAP//AAAAAAAA//8BAAAAAAAAAPr/AAAAAPv/+/8AAAAAAAD//wEAAAAAAAAA//8AAAAAAAAAAAAA+/8BAAAA+v/6//r/+v8AAPv/AAD6//r/+v/2/wAA+v8AAAAA+//6////AAAAAAAABQAAAAAAAAAAAAAA/////wAA///7//r/+/8AAAAAAAABAAAAAQD7//v/+v8BAAAAAAAAAAUAAAABAAEABQAFAAUABAAGAAAAAAAGAAsACgAFAAUAAAD//wAAAAAAAAAAAQAAAPv/+//7//r/+//7/wAA+//2//v/+//7////+//7/wAA+//7/wAAAAAAAAEAAAAAAAAAAAAAAP//BQAFAAAABQAAAAAAAAAAAAAABAAAAAAAAAAAAP//BQAGAAUABAAJAAQABgAAAAAABQAGAAUABQAFAAoACgAFAAUACQAFAAQACQAJAAoACgAFAAQABQAJAAUABQAFAAEACQAEAAUAAAAFAAQABQAAAAAAAAD8/wAAAAAAAPv/AAAAAAEAAQABAAAAAAAAAAAAAAAAAAAAAAAAAAkAAAABAAAABQAEAAAAAAAAAAAA/P/8/wAA+/8BAAAA/P/8//v/AQD8//z/AAAAAPz/AAAAAAAAAQD7//v///8BAAAAAAAEAP//AAAAAAAAAAAEAAQAAQAEAAQABQAEAAQAAAAEAAQAAAAEAAAABQAAAAAAAAAFAAgAAQAEAAgADAAEAAQACQAEAAUABAAEAAUABQAJAAUABAAFAAAAAAAAAAAABAAAAAAAAAAAAAAAAAD8//z/+//8//f/+P8AAPz//P/9//j/9//4//v/+P/8//v//P/8//z//P////3//P/8//z/+/8BAAAA+/8AAAAA/P/8//v//P8AAPz//P/8//z//P/8//z//P/8//3/+P/8//j/9P/4//T/+P/3//X/+P/4//j/9f/4//T/9f/4//j/+f/8//3/+f/8//z/+//8//z/AAD8//z//f/8//3//P8BAAEAAAD8//z//P/4//3//P8AAPz//P/8//3/+P8BAPz/AAAAAAAAAAADAAAAAAABAAAAAQD//wEAAQAAAAQABAADAAAABAAEAAMABAAEAAgABwAIAAQABAAHAAQABwADAAgABAAEAAQABAAAAP//BAADAAQAAAAHAAMAAAADAAQAAAAEAAQA//8AAAQABwAEAAQAAQAEAAAAAAABAAAAAAAAAAAAAAD8/wAAAAAAAP//AAAAAP//AAAAAPz//P/6//3//f/9//z//P/8//n//P/8//z//P/5//n//f/8//3/+f/5//n/AAD6//3//f/8//z//f/9//z//P/9//3//f/8//r//f/9//3//P////z//f/6//3/AAAAAAEA/f/5/wAA/P/9//3//P/8//z//f/5//r//f/6//b//f/2//f/+f/3//n/9v/2//n/+v/3//f/9//3//r/9v/2//r//P/6//r/+v/6//7//v/9//z//f/9//3/+v/5//3//P/9//3//f/9//r//P/9//3/+v/9//3/+v/9//3//f/6//r/+f/7//r//f/9//7/9//6//3//f/9//3//f/6//3/AAD9//z//f/+//3/+v/6//r/+v/7//z//v/9//3/+v/6//z//f/+//3//f/6/wAA//8BAAEAAAABAAAAAwACAAMAAAADAAAAAwAAAAMAAgACAAEAAwAAAAAAAAADAAAAAQACAAMAAgD//wMAAQAAAAIAAAAFAAIAAQADAAMAAwAAAAIABgAFAAMABgADAAYABgADAAYACAADAAYABQAGAAYAAwAFAAUAAwADAAYAAwACAAYAAwACAAIABQAAAAIAAQAAAP//AAAAAAAAAAAAAAEAAAADAAAAAwADAAAAAgACAAMABQACAAMAAwAGAAUABQAGAAUAAgAFAAMABQADAAUAAAABAAMAAwAAAAMAAgACAAMA//8AAAAAAgABAAAAAgACAAMAAAD//wIAAgACAAMAAAACAAIAAAACAAIA//8BAAIAAAABAAAAAAD//wAAAAAAAAAAAAAAAAEAAAD+/wAAAQAAAAAAAAD9/wAAAQAAAAAAAQABAP7/AAAAAAAAAAABAAEAAAAAAAAAAAAAAAMA//8BAAAAAQAAAAAA/v8AAAAAAAAAAAEAAAAAAAEAAAAAAAAAAgAAAAIAAgAAAAIAAAACAAIAAwADAAIAAgACAAUAAgACAAIAAgAFAAQABAAFAAUABAADAAEAAgACAAAAAgACAP//AAD9/wEAAAABAAEA//8AAP//AAAAAAAA//8CAAAAAAAAAAAAAAADAAMAAAAAAAEAAAACAAEAAAACAAAAAAABAAAAAAABAAMAAAADAAIAAgD//wAA/////wAAAAAAAAAAAQAAAAAA/v/+//7//v/8//z//P/8//v/+v/8//r/+v/8//z//v/9//z//v/8/////v/8//3/+//8//r//P/8//z//f/7//z//f/7//r/+v/9//z/+/////7////8//7///8AAAAAAAAAAP////8AAP//AAAAAAAAAAAAAAAAAgAAAAAAAAD+//////8BAAAAAQAAAAAAAAD//wEAAAD//wEAAAABAAAAAAAAAP//AAAAAAAAAAAAAAAAAAABAP7/AAAAAAAAAAD//wAAAAAAAAAAAAAAAAAA//8AAP7/AQD+/wEA/v///wAA/v////7//v//////AAD/////AAD+/wAA//////7//v8AAP7//v////7//v/+///////+//7//P/+//7//f/+//7////9//3//f/9//3//f/+//3////9//3////8//3//f/9/////v/+//7//v/9//3//f/7//7//P/9//3//f/9//3//f/9/////v/9/////f/+//3//v/8//7//v8AAP/////+//////8AAAEAAAAAAP///////wEAAAABAAAAAAAAAAAAAQD+///////+/wAAAAAAAAAAAAAAAAAAAQAAAP7//v8AAP7//v8AAAAAAAD/////AAD/////AQD+//////8AAAAA//8BAAAA//8AAP//AAD//////f/+///////+///////9//3//v/+//3//f/+///////+///////+////AAD//////v///////v/+//7////+///////+//7///////7//v/+//3////+/wAA///+//7//v////////8AAP//AAD//wAA//8AAAAAAAABAAEAAAAAAAAAAQABAAEAAAAAAAIAAgABAAEAAQACAAIAAgACAAEAAgAAAAIAAgABAAIAAQABAAIAAgABAAEAAgACAAMAAgAEAAEAAQADAAIAAQACAAIAAQABAAQAAgACAAMAAwAEAAIABAACAAIAAwADAAMAAwAEAAMAAgACAAIAAgACAAMAAQACAAIAAQACAAEAAQADAAEAAgABAP//AQAAAAAAAAD//wAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAA///+/wAA///////////+//7//v8AAP/////+//7//v8AAP///////////v////7//////////////wAA/////////v/+/wAA///+/wAA///+//z//v/+//7//f/+//7//f/+//7//v///wAA///+/////v////3//////////////wAA/////////v////////////7////+/////////wAAAAAAAP//AAAAAAAAAQAAAAEAAAD//wAAAAAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAABAAEAAAAAAAAAAAAAAAAAAAABAP//AAD+/wAAAAAAAAAAAAAAAP//AQD///////8AAP/////+//7///////7/AAAAAAAA//8AAAAAAAD/////AAAAAAAAAAAAAAAAAAD//wAAAAAAAAAA/////wAAAAD//wAA//8AAP//AAD//wAAAQAAAAAAAQAAAAAAAAAAAAAAAAAAAAEA//8AAAAAAAD//wAAAAAAAAAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAABAAAAAQABAAEAAAABAAEAAQABAAAAAAABAAAAAAAAAP////8AAAAAAAAAAAAAAQABAAEAAAAAAAIAAAAAAAEAAAAAAAEAAQAAAAEAAQABAAAAAAABAAEAAgAAAAEAAAAAAAEAAQABAAAAAAABAAEAAQAAAAEAAAABAAAAAAABAAEAAQABAAEAAQABAAEAAgABAAIAAAABAAAAAAABAAIAAQAAAAEAAQAAAAEAAQABAAAAAAAAAAEAAQAAAAAAAAAAAAAAAQAAAAAAAQAAAAAAAAAAAAEAAAAAAAEAAQAAAP//AQD//wAAAQABAAEAAAABAAEAAAAAAP//AAD//wAAAAD/////AAAAAAAAAAD///////8AAAAA//8AAP////8AAAAAAAABAAAA//8AAAAAAAAAAAAAAAD//wAAAAAAAAAAAAD//wAAAAD//wAA/////wAAAAAAAP///////wAAAAAAAP//AAD///////8AAAAA//////////////////8AAP//AAD//wAAAAD//wAAAAD/////AAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAAD/////AAABAAAAAAAAAAAAAQAAAAEAAAD//wAAAAAAAAAA//8AAAAAAAAAAP///////wAAAAAAAP//AAAAAAAAAAD//wAAAAAAAP//AAAAAAAAAAAAAAEAAAAAAAEAAAAAAP//AAAAAP//AAD//wAA//8AAAAA//8BAAAAAAD//wEA//8BAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAD//wAA//8AAAAAAAAAAAAAAAABAAAAAAD//wAAAAAAAAEAAAAAAAAA//8AAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAD//wAAAAAAAAEAAAAAAAEAAAAAAAAA//8BAAAAAAAAAAEAAAAAAAAAAAABAAAA//8BAAAA//8AAP//AAAAAP//AAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAA//8AAAEAAAAAAAAAAAAAAAAA/////wAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAP//AAD//wAAAAAAAAAA//8AAP//AAAAAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAQAAAP////8AAAAA//8AAAEAAAAAAAAAAAAAAAAAAAAAAAEAAAABAP//AAD//wAA//8AAAAAAAAAAAEAAAAAAAAAAQAAAAEAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAP//AAAAAAEAAAABAP//AAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAABAP//AAAAAAAAAAAAAAAAAQAAAP//AAAAAAAAAAAAAAAA//8AAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAP//AQAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAAAAAAAAAAQAAAAAA//8AAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAABAP//AAAAAAEAAAAAAAAAAAAAAAAAAAAAAP//AAAAAAAA//8AAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAD//wAAAAABAAAAAAAAAAAAAAABAAEAAAAAAAEAAAAAAAEAAAABAAEAAAAAAAAAAAAAAAAAAAD//wAAAAAAAAEAAAAAAAAAAAAAAP////8AAAAAAAAAAAEAAAAAAAAA//8BAAEAAAABAAAAAAD//wAAAAAAAAAA//8AAAAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAA//8AAAAAAAD//wAA//8AAP//AAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAD//wAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAA//8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/////wAAAAABAAAA//8AAAEA//8AAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAQD//wAAAAABAAAAAAAAAAAAAAAAAP////8AAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAA//8AAAAAAAABAP//AAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAAAAAABAAAAAAAAAAAAAAD//wAAAAAAAAAAAAAAAP////8AAAAAAAAAAAAA//8AAP//AAD//wAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAP//AAABAAAA//8AAAAAAAAAAAEAAAAAAAAAAAABAAEA//8AAP//AAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAP//AAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAA////////AAAAAAAAAQAAAAAAAQABAP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAD//wAAAAAAAAAAAQABAAAAAAAAAAAAAAD//wAAAQAAAAAAAAD//wAAAAD/////AAD//wAAAAAAAAAAAQAAAAAA//8AAAAAAAABAAEA//8AAP//AAAAAP//AAAAAAAAAAAAAAAAAAD/////AAAAAAAAAAAAAAAAAAABAAAAAAAAAAEA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==";
+  const FONT = '"IBM Plex Mono", ui-monospace, Consolas, monospace';
+  const LH = 1.04, ZB = 2.8;
+  const PROY = 0, ABOUT = 1, GOTAS = 2;
+
+  // ---------- teoría ----------
+  const NAMES = ['Do','Re','Mi','Fa','Sol','La','Si'], NAT = [0,2,4,5,7,9,11], MAJ = [0,2,4,5,7,9,11];
+  const KEYS = [['Do',0,0],['Re♭',1,-1],['Re',1,0],['Mi♭',2,-1],['Mi',2,0],['Fa',3,0],['Fa♯',3,1],['Sol',4,0],['La♭',5,-1],['La',5,0],['Si♭',6,-1],['Si',6,0]];
+  const MODES = ['Jónico · mayor','Dórico','Frigio','Lidio','Mixolidio','Eólico · menor','Locrio'];
+  function cellNote(r, c) {
+    const [, kl, ka] = KEYS[S.key];
+    const rootPc = (NAT[kl] + ka + 12) % 12;
+    const idx = r + c, d = idx % 7, oct = Math.floor(idx / 7);
+    let midi = 60 + rootPc + MAJ[d] + 12 * oct;
+    if (rootPc >= 6) midi -= 12;
+    const L = (kl + d) % 7, pc = (rootPc + MAJ[d]) % 12;
+    let acc = ((pc - NAT[L]) % 12 + 12) % 12; if (acc > 6) acc -= 12;
+    const name = NAMES[L] + (acc > 0 ? '♯'.repeat(acc) : acc < 0 ? '♭'.repeat(-acc) : '');
+    return {midi, name, octave: Math.floor((midi - acc) / 12) - 1, deg: c + 1, mode: MODES[r], freq: 440 * Math.pow(2, (midi - 69) / 12)};
+  }
+
+  // ---------- estado ----------
+  const PALETTES = {
+    noche:  {name:'Noche',  bg:'#030405', ink:'#e9eef2'},
+    agua:   {name:'Agua',   bg:'#02141a', ink:'#a9eef5'},
+    matriz: {name:'Matriz', bg:'#010501', ink:'#3cff74'},
+    papel:  {name:'Papel',  bg:'#ecebe6', ink:'#121416'}
+  };
+  const RAMPS = {digitos:' .-:;=+1470', binario:' .01', clasico:' .:-=+*#%@', bloques:' ░▒▓█'};
+  const DEF = {palette:'noche', glow:true, ramp:'digitos', phrase:'el agua recuerda cada gota ', size:10, fall:0.85, flow:1, spread:1, key:0, showGrid:false, q:18, vol:0.8};
+  const KEY = 'plano-gotas-v1';
+  let S = Object.assign({}, DEF);
+  try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && typeof j === 'object') Object.assign(S, j); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  let toastT;
+  function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2400); }
+
+  // ---------- lienzo y campos ----------
+  const stage = $('#stage'), cv = $('#cv'), ctx = cv.getContext('2d');
+  let W = 0, H = 0, cols = 0, rows = 0, fs = 10, cw = 6, chh = 10, dpr = 1, CR = 0.6, yh = 0, F = 1;
+  let X, Z, FOG, HASH, field, fA, fB, fP1, fP2, aboutField, aboutEdge, aboutMask, heat, heatRate;
+  let photo = null;
+  function measure() { const c = document.createElement('canvas').getContext('2d'); c.font = `500 100px ${FONT}`; CR = (c.measureText('M').width / 100) || 0.6; layout(); }
+  function layout() {
+    W = stage.clientWidth; H = stage.clientHeight; if (!W || !H) return;
+    fs = W < 560 ? Math.max(7, S.size - 2) : S.size;
+    cw = fs * CR; chh = fs * LH;
+    cols = Math.ceil(W / cw); rows = Math.ceil(H / chh);
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    yh = -0.08 * H; F = ZB * (H - yh);
+    const n = cols * rows;
+    X = new Float32Array(n); Z = new Float32Array(n); FOG = new Float32Array(n); HASH = new Float32Array(n);
+    field = new Float32Array(n); fA = new Float32Array(n); fB = new Float32Array(n); fP1 = new Float32Array(n); fP2 = new Float32Array(n);
+    heat = new Float32Array(n); heatRate = new Float32Array(n).fill(1.4);
+    for (let y = 0; y < rows; y++) {
+      const py = (y + 0.5) * chh, z = F / (py - yh);
+      for (let x = 0; x < cols; x++) {
+        const i = y * cols + x, px = (x + 0.5) * cw;
+        Z[i] = z; X[i] = (px - W / 2) * z / F; FOG[i] = Math.pow(ZB / z, 0.5);
+        const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; HASH[i] = h - Math.floor(h);
+      }
+    }
+    layoutProjects(); buildAbout();
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(layout).observe(stage); else window.addEventListener('resize', layout);
+
+  // dibuja una escena en un lienzo del tamaño de la trama y la convierte a luminancia
+  function sampleScene(draw) {
+    const oc = document.createElement('canvas'); oc.width = cols; oc.height = rows;
+    const o = oc.getContext('2d', {willReadFrequently: true});
+    o.fillStyle = '#000'; o.fillRect(0, 0, cols, rows);
+    o.setTransform(cols / W, 0, 0, rows / H, 0, 0);
+    draw(o);
+    const d = o.getImageData(0, 0, cols, rows).data, out = new Float32Array(cols * rows);
+    for (let i = 0; i < out.length; i++) out[i] = (0.2126 * d[i * 4] + 0.7152 * d[i * 4 + 1] + 0.0722 * d[i * 4 + 2]) / 255;
+    return out;
+  }
+  // zona útil: el tercio inferior lo puede tapar el panel
+  const safeH = () => H * 0.64;
+
+  // ---------- perilla de proyectos ----------
+  // Giro horario = proyectos del curso; antihorario = proyectos de la carrera.
+  // Cada dirección tiene su propio contador infinito: 120° de giro revelan el siguiente proyecto.
+  const STEP = 120;
+  // Textos: curso desde cada README; carrera desde cada TEXTO.docx (literal).
+  const COURSE = [
+    {t:'FOCUS SCROLL', k:'focus', meta:'Encargo 03 · MediaPipe + OpenCV · con Camila Ramírez',
+      lead:'Mientras más concentrado estés en tu pantalla, más desaparece el entorno.',
+      body:['Empezó con una pregunta simple: ¿qué pasa cuando estamos tan enfocados en la pantalla que no vemos nada más? Todos los días vemos a personas scrolleando sin parar. Así que decidimos hacerlo literal.',
+        'Dos sistemas usan la misma cámara al mismo tiempo: OpenCV detecta todo lo que se mueve alrededor y MediaPipe detecta hacia dónde miras. Si estás enfocado en la pantalla y algo se mueve, la imagen del entorno se oscurece; cuando levantas la vista, vuelve lentamente. Esa lentitud representa el tiempo que se perdió.',
+        'No es una lección. Es una observación.'],
+      links:[{href:'https://www.youtube.com/watch?v=8l8heRCfXrc', label:'Ver funcionamiento ↗'}]},
+    {t:'ONDAS VISIBLES', k:'ondas', meta:'Encargo 06 · ingeniería inversa · Web Audio',
+      lead:'Del sonido a la imagen: una plataforma de sonidos interactivos que terminan convertidos en forma.',
+      body:['Nace de la ingeniería inversa del encargo 06 del curso, que buscaba la interacción de la imagen con el sonido. Tomé como referencia la naturaleza y cómo actúa en relación a su entorno: con sonidos repetitivos, las formas que se van creando vuelven a encontrarse y generan vibraciones parecidas.',
+        'La interfaz replica la esencia de FL Studio (osciladores, filtros, envolventes, LFO, rack de efectos, pads y pistas) y la pone al servicio de la imagen, con unas 15 formas de visualización: ondas, órbitas, espectrograma, placa de Chladni, cámara, cubo, gravedad y mapa de volumen.'],
+      links:[{href:'https://fcartus.github.io/Ondas-cotidianas/', label:'Probar ↗'}, {href:'https://github.com/fcartus/Ondas-cotidianas', label:'Código en GitHub ↗'}]},
+    {t:'ONDAS COLECTIVAS', k:'colectivas', meta:'Tacto · MQTT · Web Audio · más de 20 personas',
+      lead:'Cada persona es un par de líneas que vibran con su propio sonido.',
+      body:['Una experiencia presencial para más de 20 personas a la vez: cada una escanea un QR, elige un loop, lo enciende y lo transforma girando el teléfono. Ve su línea en su propio teléfono y, al mismo tiempo, proyectada en la pantalla grande junto a las de todos los demás.',
+        'En reposo las líneas son rectas y verdes; con sonido se curvan, se cruzan y se encienden hacia el blanco, el rosado y el rojo. Está construida sobre Tacto (broker MQTT, QR, el teléfono como control) y toma el motor de sonido y la idea de visualización de Ondas visibles.'],
+      links:[{href:'https://fcartus.github.io/Ondas-Colectivas/pantalla.html', label:'Ser anfitrión ↗'}, {href:'https://github.com/fcartus/Ondas-Colectivas', label:'Código en GitHub ↗'}],
+      note:'Para probarlo en grupo: una persona abre «Ser anfitrión» en un computador y hace de pantalla; las demás escanean el QR que aparece con su teléfono.'}
+  ];
+  const CAREER = [
+    {t:'Archivo Vivo', k:'img', meta:'Exposición en la Biblioteca Nicanor Parra · iniciativa ConCienciAbierta',
+      lead:'Archivo vivo nace de un vacío en el mundo académico. La UDP produce una gran cantidad de conocimiento, pero ese conocimiento está disperso: cada facultad investiga desde su propio lenguaje, sin saber que otras trabajan en temas cercanos. La exposición, enmarcada en la iniciativa ConCienciAbierta, busca dar a conocer el repositorio institucional de la universidad y acercar a académicos y estudiantes de posgrado al libre acceso al conocimiento.',
+      body:['Desde el diseño industrial, nos enfocamos en crear una experiencia espacial de sobreabundancia, tal como se siente un archivo académico. Para eso tomamos palabras clave de papers reales de la comunidad UDP y las repetimos en una estructura de malla, diferenciadas por títulos según cada área. Así, el volumen de la producción académica se vuelve tangible, y las conexiones entre autores y facultades que permitía el repositorio, antes invisibles, quedan a la vista.',
+        'Trabajo desarrollado por: Taller de exposiciones y proceso curatoriales.'],
+      // las tres carpetas del proyecto, en orden, con todas sus imágenes
+      groups:[{id:'pe', name:'Primera etapa'}, {id:'mf', name:'Módulos finales y construcción'}, {id:'ex', name:'Exposición Biblioteca Nicanor Parra'}],
+      imgs:[
+        {src:'img/archivo-pe-01.jpg', g:'pe', ar:'419/614', cap:'Exploración del módulo 1'},
+        {src:'img/archivo-pe-02.jpg', g:'pe', ar:'369/619', cap:'Exploración del módulo 2'},
+        {src:'img/archivo-pe-03.jpg', g:'pe', ar:'351/623', cap:'Exploración del módulo 3'},
+        {src:'img/archivo-pe-04.jpg', g:'pe', ar:'322/621', cap:'Exploración del módulo 4'},
+        {src:'img/archivo-pe-05.jpg', g:'pe', ar:'279/615', cap:'Exploración del módulo 5'},
+        {src:'img/archivo-pe-06.jpg', g:'pe', ar:'320/599', cap:'Exploración del módulo 6'},
+        {src:'img/archivo-pe-07.jpg', g:'pe', ar:'309/614', cap:'Exploración del módulo 7'},
+        {src:'img/archivo-pe-08.jpg', g:'pe', ar:'388/622', cap:'Exploración del módulo 8'},
+        {src:'img/archivo-pe-09.jpg', g:'pe', ar:'800/450', cap:'Primer modelo de malla en madera'},
+        {src:'img/archivo-pe-10.jpg', g:'pe', ar:'800/450', cap:'Render de facultades (isométrica)'},
+        {src:'img/archivo-pe-11.jpg', g:'pe', ar:'790/524', cap:'Render de facultades'},
+        {src:'img/archivo-mf-01.jpg', g:'mf', ar:'675/900', cap:'Alambre expuesto'},
+        {src:'img/archivo-mf-02.jpg', g:'mf', ar:'600/900', cap:'Construcción en el taller'},
+        {src:'img/archivo-mf-03.jpg', g:'mf', ar:'900/457', cap:'Lámina del módulo 1', inv:true},
+        {src:'img/archivo-mf-04.jpg', g:'mf', ar:'900/385', cap:'Lámina del módulo 2', inv:true},
+        {src:'img/archivo-mf-05.jpg', g:'mf', ar:'675/900', cap:'Módulo armado (vista 1)'},
+        {src:'img/archivo-mf-06.jpg', g:'mf', ar:'675/900', cap:'Módulo armado (vista 2)'},
+        {src:'img/archivo-mf-07.jpg', g:'mf', ar:'600/900', cap:'Soldadura de la malla'},
+        {src:'img/archivo-ex-01.jpg', g:'ex', ar:'900/600', cap:'Exposición, vista 1'},
+        {src:'img/archivo-ex-02.jpg', g:'ex', ar:'900/600', cap:'Exposición, vista 2'},
+        {src:'img/archivo-ex-03.jpg', g:'ex', ar:'900/600', cap:'Exposición, vista 3'},
+        {src:'img/archivo-ex-04.jpg', g:'ex', ar:'900/600', cap:'Exposición, vista 4'},
+        {src:'img/archivo-ex-05.jpg', g:'ex', ar:'900/600', cap:'Exposición, vista 5'},
+        {src:'img/archivo-ex-06.jpg', g:'ex', ar:'900/600', cap:'Exposición, vista 6'},
+        {src:'img/archivo-ex-07.jpg', g:'ex', ar:'600/900', cap:'Exposición, vista 7'},
+        {src:'img/archivo-ex-08.jpg', g:'ex', ar:'900/600', cap:'Exposición, vista 8'},
+        {src:'img/archivo-ex-09.jpg', g:'ex', ar:'600/900', cap:'Exposición, vista 9'}
+      ]},
+    {t:'Soplador', k:'img', meta:'Soplador de espacio reducido · ingeniería inversa · con Maximiliano Herrera',
+      lead:'Este proyecto usa la ingeniería inversa para crear un producto nuevo. Partimos del levantamiento de un soplador real: lo desarmamos para entender sus piezas, materiales y procesos de fabricación. Con ese conocimiento como base, desarrollamos una propuesta nueva con una mejora estructural pensada en su uso.',
+      body:['Un soplador convencional es un objeto voluminoso y poco práctico de transportar. Por eso lo replanteamos para que creciera a lo largo y no a lo ancho, con la entrada de aire en la parte posterior. El resultado es un soplador de mano compacto, eficiente y ergonómico, pensado para trabajar en espacios reducidos.',
+        'En conjunto con Maximiliano Herrera.'],
+      imgs:[{src:'img/soplador-1.jpg', cap:'Resultado', inv:true}, {src:'img/soplador-2.jpg', cap:'Vista explosionada', inv:true}, {src:'img/soplador-3.jpg', cap:'Levantamiento del soplador real', inv:true}, {src:'img/soplador-4.jpg', cap:'Planos', inv:true}]},
+    {t:'MoRe', k:'img', meta:'Monitoreo autónomo · cámara · datos en la nube',
+      lead:'MoRe es un sistema autónomo de monitoreo diseñado para registrar la rutina diaria de uso de los basureros locales. Usa una cámara espía montada sobre una Raspberry Pi, que toma fotografías del basurero cada 20 minutos. Con esas imágenes, el sistema identifica el estado del recipiente y registra cómo varía su nivel de llenado a lo largo del día.',
+      body:['Las fotografías y los datos estadísticos se envían a una nube, que muestra en tiempo real el llenado y el estado de cada basurero a quien más lo necesita: el recolector, el trabajador que convive a diario con estos puntos.',
+        'Con esta información, el recolector puede planificar sus rutas según la demanda real y optimizar sus tiempos de trabajo. A la vez, evita que los basureros se desborden y ayuda a frenar el deterioro del entorno.'],
+      imgs:[{src:'img/more-1.jpg', cap:'Basurero en la calle'}, {src:'img/more-2.jpg', cap:'Basura acumulada junto a las bancas'}, {src:'img/more-3.jpg', cap:'Electrónica final'}, {src:'img/more-4.jpg', cap:'Despiece de la carcasa', inv:true}, {src:'img/more-5.jpg', cap:'Aplicación para el recolector'}, {src:'img/more-6.jpg', cap:'Mapa de puntos de basura', inv:true}]}
+  ];
+
+  // Fotos: se cargan una vez y se convierten a luminancia en la zona de la imagen (a la derecha de la rueda).
+  let artRect = {x: 0, y: 0, w: 1, h: 1}, textRect = null;
+  CAREER.forEach(p => {
+    p.lum = [];
+    p.el = p.imgs.map((im, k) => {
+      const el = new Image();
+      el.onload = () => { if (cols) p.lum[k] = imgLum(el, im.inv); };
+      el.src = im.src;
+      return el;
+    });
+  });
+  function imgLum(el, inv) {
+    const r = artRect;
+    const f = sampleScene(o => {
+      const s = Math.max(r.w / el.naturalWidth, r.h / el.naturalHeight);
+      const iw = el.naturalWidth * s, ih = el.naturalHeight * s;
+      o.save(); o.beginPath(); o.rect(r.x, r.y, r.w, r.h); o.clip();
+      o.drawImage(el, r.x + (r.w - iw) / 2, r.y + (r.h - ih) / 2, iw, ih);
+      o.restore();
+    });
+    let lo = 1, hi = 0;
+    for (let i = 0; i < f.length; i++) { const v = f[i]; if (v < lo) lo = v; if (v > hi) hi = v; }
+    const span = Math.max(0.15, hi - lo);
+    for (let i = 0; i < f.length; i++) {
+      let v = (f[i] - lo) / span; if (inv) v = 1 - v;
+      f[i] = v;
+    }
+    return f;
+  }
+  function relumAll() { CAREER.forEach(p => p.el.forEach((el, k) => { if (el.complete && el.naturalWidth) p.lum[k] = imgLum(el, p.imgs[k].inv); })); }
+  function imageValue(p, i, t) {
+    const L = p.lum, n = L.length;
+    if (!n) return 0.04;
+    const c = t / 5, a = Math.floor(c) % n, b = (a + 1) % n, f = smooth(0.7, 1, c - Math.floor(c));
+    const A = L[a], B = L[b] || A;
+    if (!A) return 0.04;
+    const h = (HASH[i] * 3.17) % 1;
+    return (h < f ? B[i] : A[i]) + 0.02 * Math.sin(i * 1.3 + t * 2.4);
+  }
+  function measureText() {
+    if (galOpen && galRect) { textRect = galRect; return; }
+    const pi = $('#pinfo'), s = stage.getBoundingClientRect(), r = pi.getBoundingClientRect();
+    textRect = r.width ? {x: r.left - s.left - 18, y: r.top - s.top - 14, w: r.width + 36, h: r.height + 28} : null;
+  }
+  let dialAngle = 0, uCW = 0, uCCW = 0, wCat = 1, vel = 0, dDrag = null;
+  let lastNum = 0, lastDir = 0, dirRun = 0, combo = [], textKey = '';
+  let dialC = {x: 0, y: 0, r: 1}, artC = {x: 0, y: 0, s: 1};
+
+  // La rueda: centro fuera de la pantalla a la izquierda; solo se ve su arco derecho.
+  let wheel = {x: 0, y: 0, R: 1, band: 0, lineEnd: 0};
+  function layoutProjects() {
+    const narrow = W < 640, sh = safeH();
+    const R = narrow ? H * 0.52 : H * 0.6;
+    const vis = narrow ? W * 0.27 : Math.min(W * 0.27, R * 0.75);
+    const cy = narrow ? H * 0.3 : sh * 0.52 + H * 0.02;
+    const left = narrow ? vis + 22 : Math.max(vis + 70, W * 0.42);
+    wheel = {x: vis - R, y: cy, R, band: vis + 14, lineEnd: left - 12};
+    dialC = {x: wheel.x, y: cy, r: R};
+    $('#dial').style.width = wheel.band + 'px';
+    $('#pinfo').style.cssText = `left:${left}px;right:${narrow ? 16 : W * 0.06}px;top:${narrow ? cy - 16 : Math.max(H * 0.06, cy - H * 0.17)}px`;
+    artC = {x: narrow ? W * 0.64 : W * 0.68, y: narrow ? H * 0.2 : sh * 0.4, s: Math.min(W, sh) * 0.95};
+    artRect = {x: 0, y: 0, w: W, h: H};   // la foto en ASCII cubre todo el fondo
+    if (typeof relumAll === 'function') relumAll();
+    if (galOpen) layoutGallery();
+    requestAnimationFrame(measureText);
+  }
+
+  // Escala de precisión dibujada con caracteres: anillos, marcas cada 2°, 10° y 30°, números cada 10°,
+  // anillo interior cada 15° y línea índice con la lectura.
+  let ov = null;
+  const glyph = a => { const p = ((a % Math.PI) + Math.PI) % Math.PI; return p < 0.39 || p > 2.75 ? '-' : p < 1.18 ? '\\' : p < 1.96 ? '|' : '/'; };
+  function putText(row, col, s) { if (row < 0 || row >= rows) return; for (let j = 0; j < s.length; j++) { const c = col + j; if (c >= 0 && c < cols) ov[row * cols + c] = s[j]; } }
+  function buildWheelOverlay() {
+    const n = cols * rows;
+    if (!ov || ov.length !== n) ov = new Array(n);
+    ov.fill(undefined);
+    const {x: wx, y: wy, R} = wheel, rot = dialAngle * Math.PI / 180, toDeg = 180 / Math.PI;
+    const bandC = Math.min(cols, Math.ceil(wheel.band / cw) + 1);
+    const L1 = cw * 1.6, L2 = cw * 3.2, L3 = cw * 5, R2 = R - cw * 15, half = chh * 0.5;
+    for (let y = 0; y < rows; y++) {
+      const py = (y + 0.5) * chh, dy = py - wy;
+      for (let x = 0; x < bandC; x++) {
+        const px = (x + 0.5) * cw, dx = px - wx, r = Math.hypot(dx, dy), i = y * cols + x;
+        if (r > R + half) continue;
+        const th = Math.atan2(dy, dx);
+        if (Math.abs(r - R) < half || Math.abs(r - R2) < half) { ov[i] = glyph(th + Math.PI / 2); continue; }
+        const a = (th - rot) * toDeg;
+        const inner = R - r;
+        if (inner > 0 && inner < L3) {
+          const k = Math.round(a / 2), arc = Math.abs(a - k * 2) / toDeg * r;
+          if (arc < cw * 0.55) {
+            const kk = ((k % 180) + 180) % 180, len = kk % 15 === 0 ? L3 : kk % 5 === 0 ? L2 : L1;
+            if (inner < len) { ov[i] = glyph(th); continue; }
+          }
+        }
+        const out2 = r - R2;
+        if (out2 > 0 && out2 < L2) {
+          const k = Math.round(a / 15), arc = Math.abs(a - k * 15) / toDeg * r;
+          if (arc < cw * 0.55) ov[i] = glyph(th);
+        }
+      }
+    }
+    const rn = R - L3 - cw * 2.4;
+    for (let k = 0; k < 36; k++) {
+      const ang = rot + k * 10 / toDeg, c = Math.cos(ang), s = Math.sin(ang);
+      if (c < 0.12) continue;
+      const px = wx + rn * c, py = wy + rn * s;
+      if (py < 0 || py > H || px < cw) continue;
+      putText(Math.floor(py / chh), Math.round(px / cw - 1.5), String(k * 10).padStart(3, '0'));
+    }
+    const row = Math.floor(wy / chh), c0 = Math.ceil((wx + R) / cw) + 1, c1 = Math.floor(wheel.lineEnd / cw);
+    const reading = ((-dialAngle % 360) + 360) % 360;
+    const label = '< ' + reading.toFixed(1).padStart(5, '0') + '° ';
+    let line = ''; for (let c = c0; c <= c1; c++) line += (c - c0 < label.length) ? label[c - c0] : '-';
+    putText(row, c0, line);
+    putText(row - 3, c0, '^ carrera');
+    putText(row + 3, c0, 'v curso');
+  }
+  function projVis(i) {
+    if (to === null) return active === PROY;
+    if (to === PROY) return HASH[i] < mix;
+    if (from === PROY) return HASH[i] >= mix;
+    return false;
+  }
+  function itemOf(n, list) { if (n <= 0) return null; const i = (n - 1) % 3; return {...list[i], i: i + 1, lap: Math.floor((n - 1) / 3) + 1}; }
+  const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+  function rotateBy(deg) {
+    if (!deg) return;
+    const prevCW = Math.floor(uCW), prevCCW = Math.floor(uCCW);
+    dialAngle += deg;
+    if (deg > 0) uCW += deg / STEP; else uCCW += -deg / STEP;
+    wCat = Math.max(0, Math.min(1, wCat + deg / 50));
+    const num = Math.floor(dialAngle / 2);
+    if (num !== lastNum) { lastNum = num; tick(); }
+    const dir = deg > 0 ? 1 : -1;
+    if (dir !== lastDir) {
+      if (lastDir !== 0 && dirRun > 14) { combo.push((lastDir > 0 ? '↻' : '↺') + String(dialNumber()).padStart(3, '0') + '°'); if (combo.length > 4) combo.shift(); textKey = ''; }
+      lastDir = dir; dirRun = 0;
+    }
+    dirRun += Math.abs(deg);
+    if (Math.floor(uCW) > prevCW) clunk(true);
+    if (Math.floor(uCCW) > prevCCW) clunk(false);
+  }
+  const dialNumber = () => Math.round(((-dialAngle % 360) + 360) % 360) % 360;
+
+  // Gesto vertical sobre el arco: abajo = horario (curso), arriba = antihorario (carrera).
+  const dialEl = $('#dial');
+  dialEl.addEventListener('pointerdown', e => {
+    e.preventDefault(); initAudio(); closeDrawer();
+    try { dialEl.setPointerCapture(e.pointerId); } catch (_) {}
+    dDrag = {id: e.pointerId, y: e.clientY, t: performance.now()}; vel = 0;
+  });
+  dialEl.addEventListener('pointermove', e => {
+    if (!dDrag || dDrag.id !== e.pointerId) return;
+    const dy = e.clientY - dDrag.y, now = performance.now(), dt = Math.max(1, now - dDrag.t) / 1000;
+    const deg = dy / wheel.R * 180 / Math.PI * 2;
+    vel = vel * 0.6 + (deg / dt) * 0.4;
+    dDrag.y = e.clientY; dDrag.t = now;
+    rotateBy(deg);
+  });
+  const dialEnd = e => {
+    if (!dDrag || dDrag.id !== e.pointerId) return;
+    if (performance.now() - dDrag.t > 90) vel = 0;
+    vel = Math.max(-1080, Math.min(1080, vel));
+    dDrag = null;
+  };
+  dialEl.addEventListener('pointerup', dialEnd);
+  dialEl.addEventListener('pointercancel', dialEnd);
+  dialEl.addEventListener('wheel', e => { e.preventDefault(); rotateBy(Math.max(-60, Math.min(60, e.deltaY)) * 0.4); }, {passive: false});
+  dialEl.addEventListener('keydown', e => {
+    if (['ArrowRight', 'ArrowUp'].includes(e.key)) { e.preventDefault(); initAudio(); rotateBy(7.2); }
+    else if (['ArrowLeft', 'ArrowDown'].includes(e.key)) { e.preventDefault(); initAudio(); rotateBy(-7.2); }
+  });
+  function stepDial(dt) {
+    if (!dDrag && Math.abs(vel) > 4) { rotateBy(vel * dt); vel *= Math.exp(-dt * 2.4); }
+    else if (!dDrag) vel = 0;
+  }
+
+  // visuales ASCII de cada proyecto (marcadores de posición generativos)
+  function gen(kind, px, py, t, i) {
+    const u = (px - artC.x) / artC.s, v = (py - artC.y) / artC.s;
+    switch (kind) {
+      case 'intro': {
+        const d = Math.hypot(px - dialC.x, py - dialC.y) / dialC.r;
+        return d > 1.02 ? 0.26 * (0.5 + 0.5 * Math.sin(d * 34 - t * 2.2)) * Math.exp(-(d - 1) * 2.2) : 0;
+      }
+      case 'focus': {
+        const band = Math.exp(-(v * v) / 0.012), lines = 0.5 + 0.5 * Math.sin(v * 90 + t * 6);
+        const blur = (0.5 + 0.5 * Math.sin(u * 5 + t * 0.7) * Math.sin(v * 6 - t)) * 0.3;
+        return band * lines + (1 - band) * blur;
+      }
+      case 'ondas': {
+        let best = 0;
+        const k0 = Math.round(v / 0.1);
+        for (let k = k0 - 1; k <= k0 + 1; k++) {
+          const yk = k * 0.1 + 0.045 * Math.sin(u * 9 + t * 2 + k * 1.3) * (1 + 0.5 * Math.sin(t * 0.7 + k));
+          const dd = v - yk; best = Math.max(best, Math.exp(-(dd * dd) / 0.0002));
+        }
+        return best + 0.04;
+      }
+      case 'colectivas': {
+        let s = 0;
+        for (let k = 0; k < 3; k++) {
+          const sx = 0.22 * Math.cos(t * 0.3 + k * 2.094), sy = 0.15 * Math.sin(t * 0.3 + k * 2.094);
+          s += Math.cos(Math.hypot(u - sx, v - sy) * 60 - t * 5);
+        }
+        const val = 0.5 + s / 6;
+        return val * val;
+      }
+      case 'archivo': {
+        if (Math.abs(u) > 0.55 || Math.abs(v) > 0.33) return 0.03;
+        const gx = (u + 0.55) * 10, gy = (v + 0.33) * 10, fx = gx - Math.floor(gx), fy = gy - Math.floor(gy);
+        if (fx < 0.08 || fy < 0.11) return 0.72;
+        const h = Math.sin(Math.floor(gx) * 12.9898 + Math.floor(gy) * 78.233) * 43758.5453, hh = h - Math.floor(h);
+        return 0.1 + 0.55 * (0.5 + 0.5 * Math.sin(t * 1.3 + hh * 40)) * (hh > 0.35 ? 1 : 0.3);
+      }
+      case 'soplador': {
+        const s = Math.pow(0.5 + 0.5 * Math.sin(v * 50 + 2.2 * Math.sin(u * 4 - t * 1.8)), 10);
+        const flow = 0.5 + 0.5 * Math.sin(u * 9 - t * 7 + v * 3);
+        return (s * (0.35 + 0.65 * flow) + 0.04) * (Math.abs(v) < 0.32 ? 1 : 0.2);
+      }
+      case 'ring': {
+        const rr = Math.hypot(u / 0.3, (v - 0.04) / 0.11);
+        const band = Math.exp(-((rr - 1) * (rr - 1)) / 0.012);
+        const shade = 0.5 + 0.5 * Math.sin(Math.atan2(v, u) + t * 1.2);
+        let val = band * (0.35 + 0.65 * shade);
+        if (Math.abs(u) + Math.abs(v + 0.11) * 1.4 < 0.055) val = 0.85 + 0.15 * Math.sin(t * 5);
+        const h = HASH[i];
+        if (h > 0.994) val += Math.max(0, Math.sin(t * 6 + h * 900)) * 0.9;
+        return val;
+      }
+    }
+    return 0;
+  }
+  function catField(out, u, list, t) {
+    const n = Math.floor(u), m = smooth(0.5, 1, u - n);
+    const A = itemOf(n, list), B = itemOf(n + 1, list);
+    const val = (it, px, py, i) => it && it.k === 'img' ? imageValue(it, i, t) : gen(it ? it.k : 'intro', px, py, t, i);
+    for (let y = 0, i = 0; y < rows; y++) {
+      const py = (y + 0.5) * chh;
+      for (let x = 0; x < cols; x++, i++) {
+        const px = (x + 0.5) * cw, h = 1 - HASH[i], e = h - m;
+        let v = (m > 0 && h < m) ? val(B, px, py, i) : val(A, px, py, i);
+        if (m > 0 && m < 1 && e > -0.03 && e < 0.03) v += 0.6 * (1 - Math.abs(e) / 0.03);
+        out[i] = v;
+      }
+    }
+  }
+  function computeProjects(f, t) {
+    const n = cols * rows;
+    if (wCat > 0) catField(fP1, uCW, COURSE, t);
+    if (wCat < 1) catField(fP2, uCCW, CAREER, t);
+    for (let i = 0; i < n; i++) {
+      let v;
+      if (wCat >= 1) v = fP1[i]; else if (wCat <= 0) v = fP2[i];
+      else { const h = (HASH[i] * 7.31) % 1, e = h - wCat; v = h < wCat ? fP1[i] : fP2[i]; if (e > -0.03 && e < 0.03) v += 0.6 * (1 - Math.abs(e) / 0.03); }
+      const px = ((i % cols) + 0.5) * cw, py = (Math.floor(i / cols) + 0.5) * chh;
+      const dd = Math.hypot(px - dialC.x, py - dialC.y) / dialC.r;
+      if (dd < 1) v *= 0.4;
+      const T = textRect;
+      if (T && px > T.x && px < T.x + T.w && py > T.y && py < T.y + T.h) {
+        const e = Math.min(px - T.x, T.x + T.w - px, py - T.y, T.y + T.h - py) / 22;
+        v *= 1 - 0.72 * Math.min(1, e);
+      }
+      f[i] = v + 0.03 * Math.sin(i * 1.7 + t * 2);
+    }
+  }
+  function updateProjText() {
+    const course = wCat >= 0.5, u = course ? uCW : uCCW, list = course ? COURSE : CAREER;
+    const n = Math.floor(u), m = smooth(0.5, 1, u - n);
+    const it = itemOf(m >= 0.5 ? n + 1 : n, list);
+    const alpha = Math.min(Math.abs(m - 0.5) * 2, Math.abs(wCat - 0.5) * 2);
+    $('#pinfo').style.opacity = (0.25 + 0.75 * alpha).toFixed(2);
+    const key = (course ? 'c' : 'k') + (it ? it.i + '-' + it.lap : '0') + combo.join('');
+    dialEl.setAttribute('aria-valuenow', dialNumber());
+    if (key === textKey) return;
+    textKey = key;
+    const itemKey = (course ? 'c' : 'k') + (it ? it.i : 0);
+    if (itemKey !== shownItem) {
+      shownItem = itemKey;
+      if (galOpen) closeGallery(true);
+      const body = $('#pBody'), act = $('#pAct');
+      body.classList.remove('open'); body.innerHTML = ''; act.innerHTML = '';
+      if (!it) {
+        $('#pCat').textContent = course ? 'Curso DPPID · arrastra ↓' : 'Carrera · arrastra ↑';
+        $('#pCount').textContent = '— / 03';
+        $('#pName').textContent = 'Proyectos';
+        $('#pMeta').textContent = '';
+        $('#pLead').textContent = 'Arrastra la rueda hacia abajo para revelar los proyectos del curso; hacia arriba, los de la carrera. Para descubrir el siguiente, sigue girando.';
+      } else {
+        $('#pCat').textContent = course ? 'Proyecto del curso DPPID ↻' : 'Proyecto de carrera ↺';
+        $('#pName').textContent = it.t;
+        $('#pMeta').textContent = it.meta || '';
+        $('#pLead').textContent = it.lead || '';
+        (it.body || []).forEach(t => { const p = document.createElement('p'); p.style.margin = '0'; p.textContent = t; body.appendChild(p); });
+        if (it.body && it.body.length) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'pbtn'; b.textContent = 'Leer más';
+          // El texto extendido nunca pasa del área visible: se desplaza dentro de su caja y el botón queda arriba.
+          b.addEventListener('click', () => {
+            const o = body.classList.toggle('open');
+            b.textContent = o ? 'Leer menos' : 'Leer más';
+            b.setAttribute('aria-expanded', String(o));
+            if (o) {
+              const top = body.getBoundingClientRect().top - stage.getBoundingClientRect().top;
+              body.style.maxHeight = Math.max(110, safeH() + H * 0.03 - top - 34) + 'px';
+              body.scrollTop = 0;
+            } else body.style.maxHeight = '';
+            requestAnimationFrame(measureText);
+          });
+          b.setAttribute('aria-expanded', 'false');
+          act.appendChild(b);
+        }
+        if (it.imgs) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'pbtn'; b.textContent = `Ver fotos (${it.imgs.length})`;
+          const src = (course ? COURSE : CAREER)[it.i - 1];
+          b.addEventListener('click', () => openGallery(src));
+          act.appendChild(b);
+        }
+        (it.links || []).forEach(l => {
+          const a = document.createElement('a'); a.className = 'pbtn'; a.href = l.href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = l.label;
+          act.appendChild(a);
+        });
+        if (it.note) { const s = document.createElement('span'); s.className = 'pnote'; s.textContent = it.note; act.appendChild(s); }
+      }
+      requestAnimationFrame(measureText);
+    }
+    $('#pCount').textContent = it ? `${String(it.i).padStart(2, '0')} / 03 · vuelta ${it.lap}` : '— / 03';
+    if (it) dialEl.setAttribute('aria-valuetext', `${dialNumber()} · ${it.t}`);
+  }
+  let shownItem = '';
+
+  // ---------- galería recapitulada ----------
+  // Las fotos aparecen como recuadros de distinto tamaño en la zona de la imagen. Cada recuadro nace
+  // en caracteres y se resuelve en la foto (de ASCII a bloques a imagen nítida), uno tras otro.
+  let galOpen = false, galProj = null, galAnims = [], galRect = null;
+  const GAL_ROWS = {1: [[12]], 2: [[7, 5]], 3: [[4, 3, 5]], 4: [[5, 7], [7, 5]], 5: [[4, 3, 5], [7, 5]], 6: [[4, 3, 5], [5, 4, 3]]};
+  function layoutGallery() {
+    const narrow = W < 640, sh = safeH(), g = $('#gal');
+    const left = narrow ? 12 : wheel.band + 30, right = narrow ? 12 : W * 0.04;   // en teléfono la galería usa todo el ancho
+    const top = narrow ? H * 0.04 : H * 0.06, bottom = sh + H * 0.03;
+    g.style.cssText = `left:${left}px;right:${right}px;top:${top}px;height:${Math.max(160, bottom - top)}px`;
+    galRect = {x: left - 14, y: top - 10, w: W - left - right + 28, h: Math.max(160, bottom - top) + 20};
+  }
+  function openGallery(p) {
+    galProj = p; galOpen = true;
+    layoutGallery();
+    const g = $('#gal'), grid = $('#galGrid');
+    g.classList.remove('closing'); g.hidden = false;
+    $('#pinfo').classList.add('away');
+    $('#galTitle').textContent = `${p.t} · ${p.imgs.length} fotos`;
+    grid.innerHTML = '';
+    galAnims = [];
+    const now = performance.now();
+    const makeTile = (im, idx, delay) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'tile';
+      b.setAttribute('aria-label', `Ampliar: ${im.cap}`);
+      const c = document.createElement('canvas'); b.appendChild(c);
+      const s = document.createElement('span'); s.textContent = im.cap; b.appendChild(s);
+      b.addEventListener('click', () => focusTile(idx));
+      galAnims.push({c, el: p.el[idx], start: now + delay, done: false, inv: im.inv});
+      return b;
+    };
+    if (p.groups) {
+      // carriles horizontales: una fila por carpeta, con su nombre; cada fila se desplaza de lado
+      grid.classList.add('lanes');
+      grid.style.gridTemplateRows = `repeat(${p.groups.length}, minmax(0, 1fr))`;
+      let order = 0;
+      p.groups.forEach((gr, gi) => {
+        const items = p.imgs.map((im, idx) => ({im, idx})).filter(o => o.im.g === gr.id);
+        const lane = document.createElement('section'); lane.className = 'lane';
+        lane.innerHTML = '<div class="lane-head halo"><span class="lane-name"></span><span class="lane-count"></span></div><div class="lane-strip" tabindex="0"></div>';
+        lane.querySelector('.lane-name').textContent = `${String(gi + 1).padStart(2, '0')} · ${gr.name}`;
+        lane.querySelector('.lane-count').textContent = `${items.length} imágenes · desliza →`;
+        const strip = lane.querySelector('.lane-strip'); strip.setAttribute('aria-label', gr.name);
+        items.forEach(({im, idx}) => { const b = makeTile(im, idx, 120 + order * 85); b.style.aspectRatio = im.ar; strip.appendChild(b); order++; });
+        strip.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && strip.scrollWidth > strip.clientWidth) { strip.scrollLeft += e.deltaY; e.preventDefault(); } }, {passive: false});
+        grid.appendChild(lane);
+      });
+      $('#galTitle').textContent = `${p.t} · ${p.imgs.length} imágenes en ${p.groups.length} etapas`;
+    } else {
+      grid.classList.remove('lanes');
+      const rowsSpec = GAL_ROWS[Math.min(6, p.imgs.length)] || GAL_ROWS[6];
+      grid.style.gridTemplateRows = `repeat(${rowsSpec.length}, minmax(0, 1fr))`;
+      let k = 0, seed = p.t.length;
+      rowsSpec.forEach(row => row.forEach(span => {
+        if (k >= p.imgs.length) return;
+        const b = makeTile(p.imgs[k], k, 120 + k * 140);
+        b.style.gridColumn = `span ${span}`;
+        // irregularidad del boceto: cada recuadro con altura y desplazamiento propios
+        seed = (seed * 9301 + 49297) % 233280; const r1 = seed / 233280;
+        seed = (seed * 9301 + 49297) % 233280; const r2 = seed / 233280;
+        b.style.height = (78 + r1 * 22).toFixed(0) + '%';
+        b.style.alignSelf = r2 < 0.33 ? 'start' : r2 < 0.66 ? 'center' : 'end';
+        grid.appendChild(b);
+        k++;
+      }));
+    }
+    requestAnimationFrame(measureText);
+    $('#galClose').focus({preventScroll: true});
+  }
+  function closeGallery(instant) {
+    if (!galOpen) return;
+    galOpen = false; galAnims = [];
+    const g = $('#gal');
+    const finish = () => { g.hidden = true; g.classList.remove('closing'); $('#galGrid').innerHTML = ''; };
+    $('#pinfo').classList.remove('away');
+    if (instant) finish(); else { g.classList.add('closing'); setTimeout(finish, 300); }
+    requestAnimationFrame(measureText);
+  }
+  function focusTile(k) {
+    const grid = $('#galGrid'), n = galProj.imgs.length;
+    const old = grid.querySelector('.gal-focus'); if (old) old.remove();
+    const f = document.createElement('figure'); f.className = 'gal-focus'; f.tabIndex = 0;
+    f.innerHTML = '<img alt=""><figcaption><span></span><span class="lb-nav"><button class="pbtn" type="button" data-d="-1" aria-label="Imagen anterior">‹</button><small></small><button class="pbtn" type="button" data-d="1" aria-label="Imagen siguiente">›</button></span></figcaption>';
+    const show = i => {
+      k = (i + n) % n;
+      const im = galProj.imgs[k], gr = galProj.groups ? galProj.groups.find(g => g.id === im.g) : null;
+      f.querySelector('img').src = im.src; f.querySelector('img').alt = im.cap;
+      f.querySelector('span').textContent = gr ? `${gr.name} · ${im.cap}` : im.cap;
+      f.querySelector('small').textContent = `${k + 1} / ${n}`;
+    };
+    show(k);
+    f.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); show(k + +b.dataset.d); }));
+    f.addEventListener('click', () => f.remove());
+    f.addEventListener('keydown', e => {
+      if (e.key === 'Escape' || e.key === 'Enter') { e.stopPropagation(); f.remove(); }
+      else if (e.key === 'ArrowRight') { e.stopPropagation(); show(k + 1); }
+      else if (e.key === 'ArrowLeft') { e.stopPropagation(); show(k - 1); }
+    });
+    grid.appendChild(f); f.focus({preventScroll: true});
+  }
+  $('#galClose').addEventListener('click', () => closeGallery(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && galOpen && !document.querySelector('.gal-focus')) closeGallery(false); });
+
+  const TILE_RAMP = ' .:-=+*#%@';
+  function drawTile(a, now) {
+    const c = a.c, el = a.el;
+    const w = c.clientWidth, h = c.clientHeight;
+    if (!w || !h || !el || !el.complete || !el.naturalWidth) return;
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    if (c.width !== Math.round(w * d) || c.height !== Math.round(h * d)) { c.width = Math.round(w * d); c.height = Math.round(h * d); a.ascii = null; }
+    const pal = PALETTES[S.palette] || PALETTES.noche;
+    const p = Math.max(0, Math.min(1, (now - a.start) / 1100));
+    const x = c.getContext('2d');
+    x.setTransform(d, 0, 0, d, 0, 0);
+    x.globalAlpha = 1; x.fillStyle = pal.bg; x.fillRect(0, 0, w, h);
+    const s = Math.max(w / el.naturalWidth, h / el.naturalHeight), iw = el.naturalWidth * s, ih = el.naturalHeight * s, ox = (w - iw) / 2, oy = (h - ih) / 2;
+    const fa = 1 - smooth(0.35, 0.6, p), fb = smooth(0.35, 0.6, p);
+    if (fa > 0) {
+      const cs = 9, gc = Math.max(1, Math.floor(w / (cs * 0.6))), gr = Math.max(1, Math.floor(h / cs));
+      if (!a.ascii || a.ascii.gc !== gc) {
+        const oc = document.createElement('canvas'); oc.width = gc; oc.height = gr;
+        const o = oc.getContext('2d', {willReadFrequently: true});
+        o.drawImage(el, ox * gc / w, oy * gr / h, iw * gc / w, ih * gr / h);
+        const dd = o.getImageData(0, 0, gc, gr).data, L = new Float32Array(gc * gr);
+        for (let i = 0; i < L.length; i++) { let v = (0.2126 * dd[i * 4] + 0.7152 * dd[i * 4 + 1] + 0.0722 * dd[i * 4 + 2]) / 255; L[i] = a.inv ? 1 - v : v; }
+        a.ascii = {gc, gr, L};
+      }
+      const L = a.ascii.L;
+      x.globalAlpha = fa; x.fillStyle = pal.ink; x.font = `500 ${cs}px ${FONT}`; x.textBaseline = 'top';
+      const reveal = smooth(0, 0.3, p);
+      for (let yy = 0; yy < gr; yy++) {
+        let line = '';
+        for (let xx = 0; xx < gc; xx++) {
+          const i = yy * gc + xx, hsh = (Math.sin(xx * 12.9898 + yy * 78.233) * 43758.5453) % 1;
+          line += Math.abs(hsh) < reveal ? TILE_RAMP[Math.round(L[i] * (TILE_RAMP.length - 1))] : ' ';
+        }
+        x.fillText(line, 0, yy * cs);
+      }
+    }
+    if (fb > 0) {
+      const block = Math.max(1, 22 * (1 - smooth(0.45, 1, p)));
+      x.globalAlpha = fb;
+      if (block <= 1.2) { x.imageSmoothingEnabled = true; x.drawImage(el, ox, oy, iw, ih); }
+      else {
+        const sw = Math.max(1, Math.round(w / block)), sh2 = Math.max(1, Math.round(h / block));
+        const oc = a.pix || (a.pix = document.createElement('canvas'));
+        oc.width = sw; oc.height = sh2;
+        const o = oc.getContext('2d'); o.imageSmoothingEnabled = true;
+        o.drawImage(el, ox * sw / w, oy * sh2 / h, iw * sw / w, ih * sh2 / h);
+        x.imageSmoothingEnabled = false; x.drawImage(oc, 0, 0, w, h); x.imageSmoothingEnabled = true;
+      }
+    }
+    x.globalAlpha = 1;
+    if (p >= 1) a.done = true;
+  }
+  function stepGallery(now) {
+    if (!galOpen) return;
+    for (const a of galAnims) if (!a.done || a.c.width !== Math.round(a.c.clientWidth * Math.min(window.devicePixelRatio || 1, 2))) { a.done = false; drawTile(a, now); }
+  }
+  function portraitRect() {
+    const narrow = W < 640;
+    if (narrow) { const w = Math.min(W * 0.5, H * 0.26); return {x: (W - w) / 2, y: H * 0.07, w, h: H * 0.28}; }
+    return {x: W * 0.08, y: H * 0.1, w: Math.min(W * 0.32, H * 0.5), h: safeH() - H * 0.1};
+  }
+  function buildAbout() {
+    const r = portraitRect();
+    aboutField = sampleScene(o => {
+      if (photo) {
+        const s = Math.max(r.w / photo.naturalWidth, r.h / photo.naturalHeight);
+        const iw = photo.naturalWidth * s, ih = photo.naturalHeight * s;
+        o.save(); o.beginPath(); o.rect(r.x, r.y, r.w, r.h); o.clip();
+        o.filter = 'contrast(1.25)';
+        o.drawImage(photo, r.x + (r.w - iw) / 2, r.y + (r.h - ih) / 2, iw, ih);
+        o.restore();
+      } else {
+        const g = o.createLinearGradient(0, r.y, 0, r.y + r.h); g.addColorStop(0, '#2a2a2a'); g.addColorStop(1, '#0c0c0c');
+        o.fillStyle = g; o.fillRect(r.x, r.y, r.w, r.h);
+        const cx = r.x + r.w / 2, hy = r.y + r.h * 0.38, hr = Math.min(r.w, r.h) * 0.2;
+        const sh = o.createRadialGradient(cx - hr * .6, r.y + r.h * .98, 10, cx, r.y + r.h * 1.05, r.w * .55);
+        sh.addColorStop(0, '#cfcfcf'); sh.addColorStop(1, '#1a1a1a');
+        o.fillStyle = sh; o.beginPath(); o.ellipse(cx, r.y + r.h * 1.02, r.w * .46, r.h * .36, 0, Math.PI, 0); o.fill();
+        const hg = o.createRadialGradient(cx - hr * .4, hy - hr * .4, 2, cx, hy, hr * 1.2);
+        hg.addColorStop(0, '#f2f2f2'); hg.addColorStop(.6, '#8a8a8a'); hg.addColorStop(1, '#202020');
+        o.fillStyle = hg; o.beginPath(); o.ellipse(cx, hy, hr, hr * 1.22, 0, 0, Math.PI * 2); o.fill();
+      }
+      o.strokeStyle = '#9a9a9a'; o.lineWidth = Math.max(2, cw); o.strokeRect(r.x, r.y, r.w, r.h);
+    });
+    // la foto es oscura: se estira su contraste (percentiles 3–97) para que la cara se lea en caracteres
+    if (photo) {
+      const x0 = Math.max(0, Math.floor(r.x / cw)), x1 = Math.min(cols - 1, Math.floor((r.x + r.w) / cw));
+      const y0 = Math.max(0, Math.floor(r.y / chh)), y1 = Math.min(rows - 1, Math.floor((r.y + r.h) / chh));
+      const vals = [];
+      for (let y = y0 + 1; y < y1; y++) for (let x = x0 + 1; x < x1; x++) vals.push(aboutField[y * cols + x]);
+      if (vals.length > 20) {
+        vals.sort((a, b) => a - b);
+        const lo = vals[Math.floor(vals.length * 0.03)], hi = vals[Math.floor(vals.length * 0.97)], span = Math.max(0.08, hi - lo);
+        for (let y = y0 + 1; y < y1; y++) for (let x = x0 + 1; x < x1; x++) {
+          const i = y * cols + x; aboutField[i] = Math.max(0, Math.min(1, (aboutField[i] - lo) / span)) * 0.95;
+        }
+      }
+    }
+    // contorno del retrato (Sobel sobre la trama) y máscara del recuadro, para el efecto de alternancia
+    {
+      const n = cols * rows, A = aboutField;
+      aboutEdge = new Float32Array(n); aboutMask = new Uint8Array(n);
+      const x0 = Math.max(1, Math.floor(r.x / cw) + 1), x1 = Math.min(cols - 2, Math.floor((r.x + r.w) / cw) - 1);
+      const y0 = Math.max(1, Math.floor(r.y / chh) + 1), y1 = Math.min(rows - 2, Math.floor((r.y + r.h) / chh) - 1);
+      let gmax = 0.001;
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const i = y * cols + x;
+        aboutMask[i] = 1;
+        const gx = (A[i - cols + 1] + 2 * A[i + 1] + A[i + cols + 1]) - (A[i - cols - 1] + 2 * A[i - 1] + A[i + cols - 1]);
+        const gy = (A[i + cols - 1] + 2 * A[i + cols] + A[i + cols + 1]) - (A[i - cols - 1] + 2 * A[i - cols] + A[i - cols + 1]);
+        const g = Math.hypot(gx, gy); aboutEdge[i] = g; if (g > gmax) gmax = g;
+      }
+      for (let i = 0; i < n; i++) { if (!aboutMask[i]) continue; const e = aboutEdge[i] / gmax; aboutEdge[i] = e > 0.22 ? Math.min(1, 0.35 + e * 1.3) : 0; }
+    }
+    const narrow = W < 640, box = $('#aboutBox');
+    if (narrow) box.style.cssText = `left:max(16px,env(safe-area-inset-left,0px));right:16px;top:${r.y + r.h + 14}px`;
+    else box.style.cssText = `left:${r.x + r.w + W * 0.05}px;right:${W * 0.06}px;top:${r.y + 6}px`;
+  }
+  // foto de perfil
+  (() => { const im = new Image(); im.onload = () => { photo = im; if (cols) buildAbout(); }; im.src = 'img/perfil.jpg'; })();
+
+  // ---------- audio ----------
+  let AC = null, master = null, wet = null, buffer = null, comp = null;
+  function impulse(ac, secs) {
+    const len = Math.floor(ac.sampleRate * secs), b = ac.createBuffer(2, len, ac.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    return b;
+  }
+  function initAudio() {
+    if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+    AC = new C();
+    comp = AC.createDynamicsCompressor(); comp.connect(AC.destination);
+    master = AC.createGain(); master.gain.value = S.vol; master.connect(comp);
+    const conv = AC.createConvolver(); conv.buffer = impulse(AC, 2.4);
+    wet = AC.createGain(); wet.gain.value = 0.3; wet.connect(conv); conv.connect(master);
+    try {
+      const bin = atob(WAV_B64), u = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+      const p = AC.decodeAudioData(u.buffer, b => { buffer = b; }, () => {});
+      if (p && p.then) p.then(b => { buffer = b; }).catch(() => {});
+    } catch (e) {}
+  }
+  function playNote(note, when, gain) {
+    const v = AC.createGain(); v.gain.value = gain == null ? 1 : gain;
+    const an = AC.createAnalyser(); an.fftSize = 512;
+    v.connect(an); an.connect(master); v.connect(wet);
+    if (buffer) {
+      const src = AC.createBufferSource(); src.buffer = buffer;
+      src.playbackRate.value = Math.pow(2, (note.midi - 72) / 12 * 0.45);
+      const dry = AC.createGain(); dry.gain.value = 0.5;
+      const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = note.freq; bp.Q.value = S.q;
+      const bpg = AC.createGain(); bpg.gain.value = Math.min(9, 0.6 + S.q * 0.3);
+      src.connect(dry); dry.connect(v); src.connect(bp); bp.connect(bpg); bpg.connect(v);
+      src.start(when);
+    }
+    const o = AC.createOscillator(), og = AC.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(note.freq * 0.62, when);
+    o.frequency.exponentialRampToValueAtTime(note.freq, when + 0.035);
+    og.gain.setValueAtTime(0.0001, when);
+    og.gain.exponentialRampToValueAtTime(0.2, when + 0.005);
+    og.gain.exponentialRampToValueAtTime(0.0001, when + 0.75);
+    o.connect(og); og.connect(v); o.start(when); o.stop(when + 0.8);
+    return an;
+  }
+  // clic de la perilla y golpe al revelar un proyecto
+  let lastTick = 0, noiseBuf = null;
+  function tick() {
+    if (!AC || AC.state !== 'running') return;
+    const now = AC.currentTime; if (now - lastTick < 0.024) return; lastTick = now;
+    if (!noiseBuf) {
+      noiseBuf = AC.createBuffer(1, Math.floor(AC.sampleRate * 0.03), AC.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 6);
+    }
+    const s = AC.createBufferSource(); s.buffer = noiseBuf;
+    const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 3200; bp.Q.value = 4;
+    const g = AC.createGain(); g.gain.value = 0.35;
+    s.connect(bp); bp.connect(g); g.connect(master); s.start(now);
+  }
+  function clunk(course) {
+    if (!AC || AC.state !== 'running') return;
+    const now = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(150, now); o.frequency.exponentialRampToValueAtTime(70, now + 0.12);
+    g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(0.4, now + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    o.connect(g); g.connect(master); o.start(now); o.stop(now + 0.25);
+    playNote(cellNote(course ? 0 : 5, 0), now + 0.03, 0.45);   // curso en mayor, carrera en menor
+  }
+  const tbuf = new Float32Array(512);
+  function levelOf(an) { an.getFloatTimeDomainData(tbuf); let s = 0; for (let i = 0; i < tbuf.length; i++) s += tbuf[i] * tbuf[i]; return Math.sqrt(s / tbuf.length); }
+
+  // ---------- gotas ----------
+  const drops = [];
+  let interacted = false, lastAuto = 0;
+  const clock = () => performance.now() / 1000;
+  function spawn(px, py, withSound, opt) {
+    opt = opt || {};
+    const r = Math.min(6, Math.max(0, Math.floor(py / H * 7)));
+    const c = Math.min(7, Math.max(0, Math.floor(px / W * 8)));
+    const note = cellNote(r, c);
+    const Z0 = F / (py - yh), X0 = (px - W / 2) * Z0 / F;
+    const lat = AC ? (AC.outputLatency || AC.baseLatency || 0) : 0;
+    const d = {cx: Math.floor(px / cw), cy: Math.floor(py / chh), X0, Z0, ppu: F / Z0, T: S.fall,
+      t: clock() + S.fall + lat, K: 26 + (note.midi - 55) * 1.6, level: 0, an: null, note, r, c, shown: false, noChain: !!opt.noChain};
+    if (withSound && AC && AC.state !== 'closed') d.an = playNote(note, AC.currentTime + S.fall, opt.gain);
+    drops.push(d);
+    if (drops.length > 14) drops.shift();
+  }
+
+  // Toques: con mouse la gota cae al presionar. Con el dedo solo cae en un toque corto y quieto;
+  // si el dedo se desliza (scroll hacia los faders), no cae nada.
+  const taps = new Map();
+  const dropsOn = () => to === null && active === GOTAS;
+  function rel(e) { const r = stage.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+  function fire(p) {
+    initAudio();
+    if (!interacted) { interacted = true; $('#hint').classList.add('off'); }
+    closeDrawer();
+    spawn(p.x, p.y, true);
+  }
+  stage.addEventListener('pointerdown', e => {
+    if (!dropsOn()) return;
+    if (e.pointerType === 'mouse') { if (e.button === 0) fire(rel(e)); return; }
+    taps.set(e.pointerId, {...rel(e), sx: e.clientX, sy: e.clientY, t: performance.now()});
+  });
+  stage.addEventListener('pointermove', e => {
+    const tp = taps.get(e.pointerId);
+    if (tp && Math.hypot(e.clientX - tp.sx, e.clientY - tp.sy) > 10) taps.delete(e.pointerId);
+  });
+  stage.addEventListener('pointerup', e => {
+    const tp = taps.get(e.pointerId); taps.delete(e.pointerId);
+    if (tp && performance.now() - tp.t < 450 && dropsOn()) fire(tp);
+  });
+  stage.addEventListener('pointercancel', e => taps.delete(e.pointerId));
+
+  function add(f, x, y, v) { if (x >= 0 && x < cols && y >= 0 && y < rows) f[y * cols + x] += v; }
+
+  function computeWater(f, t) {
+    const tt = t * S.flow, n = cols * rows;
+    for (let i = 0; i < n; i++) {
+      const x = X[i], z = Z[i];
+      const v = 0.5 + 0.2 * Math.sin(x * 2.1 + z * 0.6 + tt * 0.8)
+        + 0.16 * Math.sin(x * 1.1 - z * 2.3 + tt * 1.4 + Math.sin(z * 0.7 + tt * 0.5) * 1.8)
+        + 0.1 * Math.sin((x + z) * 4.7 - tt * 2.4);
+      f[i] = v * v * 0.6 * FOG[i] + 0.05 * Math.sin(i * 1.7 + tt * 4);
+    }
+    for (let k = drops.length - 1; k >= 0; k--) {
+      const d = drops[k], dt = t - d.t;
+      if (dt > 6) { drops.splice(k, 1); continue; }
+      if (dt < 0) {
+        if (d.noChain) continue;
+        const p = Math.max(0, 1 + dt / d.T), head = d.cy * p * p;
+        for (let j = 0; j < 9; j++) add(f, d.cx, Math.round(head) - j, 1.1 * (1 - j / 9));
+        continue;
+      }
+      if (!d.shown) { d.shown = true; onImpact(d); }
+      if (d.an) d.level = Math.max(Math.min(1.3, levelOf(d.an) * 7), d.level * 0.93);
+      else d.level = Math.max(0, 0.9 * Math.exp(-dt * 2.2));
+      const r = 0.42 * dt * S.spread, env = Math.exp(-dt * 0.7) * (0.35 + d.level), K = d.K, lim = r + 0.05;
+      for (let i = 0; i < n; i++) {
+        const dx = X[i] - d.X0; if (dx > lim || dx < -lim) continue;
+        const dz = Z[i] - d.Z0; if (dz > lim || dz < -lim) continue;
+        const s = r - Math.sqrt(dx * dx + dz * dz);
+        if (s < 0 || s > 1.4) continue;
+        f[i] += env * Math.cos(s * K) * Math.exp(-s * 2.4) * 0.95;
+      }
+      const amp = 0.6 + d.level;
+      if (dt < 0.28) {
+        const rx = Math.max(1, 0.06 * d.ppu / cw * (1 + dt * 5)), ry = Math.max(1, rx * 0.32 * cw / chh);
+        for (let yy = -Math.ceil(ry); yy <= Math.ceil(ry); yy++)
+          for (let xx = -Math.ceil(rx); xx <= Math.ceil(rx); xx++)
+            if ((xx * xx) / (rx * rx) + (yy * yy) / (ry * ry) <= 1) add(f, d.cx + xx, d.cy + yy, (1 - dt / 0.28) * 1.2);
+      }
+      if (dt < 0.8) {
+        const hgt = Math.sin(Math.PI * dt / 0.8) * 0.16 * d.ppu / chh * Math.min(1.3, amp);
+        for (let j = 0; j <= hgt; j++) { const v = 1.1 - 0.5 * j / (hgt + 1); add(f, d.cx, d.cy - j, v); if (j < hgt * 0.35) { add(f, d.cx - 1, d.cy - j, v * 0.6); add(f, d.cx + 1, d.cy - j, v * 0.6); } }
+      } else if (dt < 1.45) {
+        const ph = (dt - 0.8) / 0.65, hy = Math.sin(Math.PI * ph) * 0.11 * d.ppu / chh;
+        add(f, d.cx, Math.round(d.cy - hy), 1.2);
+      }
+    }
+  }
+  function computeStatic(f, src, t) {
+    const n = cols * rows;
+    if (!src || src.length !== n) { f.fill(0); return; }
+    for (let i = 0; i < n; i++) f[i] = src[i] * 0.95 + 0.04 * Math.sin(i * 1.7 + t * 2.2) + (src[i] > 0.02 ? 0.03 * Math.sin(X[i] * 3 + t * 1.5) : 0);
+  }
+  // Retrato de "Sobre mí": alterna entre trama de caracteres, contorno y casi vacío,
+  // con cortes que parpadean celda a celda (como el referente).
+  function computeAbout(f, t) {
+    const n = cols * rows;
+    if (!aboutField || aboutField.length !== n || !aboutMask) { f.fill(0); return; }
+    const ph = t % 4.4;
+    let cur = 0, nxt = 0, prog = 0;
+    if (ph < 1.6) {}
+    else if (ph < 1.95) { cur = 0; nxt = 1; prog = (ph - 1.6) / 0.35; }
+    else if (ph < 3.0) { cur = 1; nxt = 1; }
+    else if (ph < 3.2) { cur = 1; nxt = 2; prog = (ph - 3.0) / 0.2; }
+    else if (ph < 3.45) { cur = 2; nxt = 2; }
+    else if (ph < 3.8) { cur = 2; nxt = 0; prog = (ph - 3.45) / 0.35; }
+    const tick = Math.floor(t * 18);
+    for (let i = 0; i < n; i++) {
+      if (!aboutMask[i]) {
+        const x = i % cols, y = (i / cols) | 0;
+        f[i] = Math.max(aboutField[i] * 0.8, (x % 3 === 0 && y % 2 === 0) ? 0.1 : 0);
+        continue;
+      }
+      let m = cur;
+      if (prog > 0) { const h = Math.sin((i + tick * 7919) * 12.9898) * 43758.5453; if (h - Math.floor(h) < prog) m = nxt; }
+      f[i] = m === 0 ? aboutField[i] : m === 1 ? aboutEdge[i] : (HASH[i] < 0.07 ? aboutField[i] * 0.5 : 0.02);
+    }
+  }
+  function computeMode(m, f, t) {
+    if (m === GOTAS) computeWater(f, t);
+    else if (m === PROY) computeProjects(f, t);
+    else computeAbout(f, t);
+  }
+
+  function onImpact(d) {
+    $('#readout').textContent = `${d.note.name}${d.note.octave} · ${d.note.deg}ª · ${d.note.mode}`;
+    if (!$('#grid').hidden) {
+      const el = $('#grid').children[d.r * 8 + d.c];
+      if (el) { el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 90); }
+    }
+  }
+
+  // ---------- faders: un solo modo activo, cruce gradual ----------
+  let active = GOTAS, from = GOTAS, to = null, mix = 0, mixTarget = null, drag = null;
+  const faders = [...document.querySelectorAll('.fader')];
+  const pOf = i => to === null ? (i === active ? 1 : 0) : i === to ? mix : i === from ? 1 - mix : 0;
+  const weightOf = m => pOf(m);
+  function setFromFader(i, p) { p = Math.max(0, Math.min(1, p)); if (i === to) mix = p; else if (i === from) mix = 1 - p; }
+  function beginTransition(i) {
+    if (to !== null) return (i === to || i === from);
+    if (i === active) { if (active === GOTAS) return false; from = active; to = GOTAS; mix = 0; return true; }
+    from = active; to = i; mix = 0; return true;
+  }
+  function settle(target) { mixTarget = target; }
+  function usable(track) { return Math.max(20, track.clientHeight - 20); }
+
+  faders.forEach(fd => {
+    const i = +fd.dataset.i, track = fd.querySelector('.track');
+    track.addEventListener('pointerdown', e => {
+      e.preventDefault(); initAudio(); closeDrawer();
+      if (to !== null && i !== to && i !== from) return;
+      if (!beginTransition(i)) { nudge(fd); return; }
+      try { track.setPointerCapture(e.pointerId); } catch (_) {}
+      mixTarget = null;
+      drag = {i, id: e.pointerId, y0: e.clientY, p0: pOf(i), moved: false, track};
+    });
+    track.addEventListener('pointermove', e => {
+      if (!drag || drag.id !== e.pointerId) return;
+      const dy = drag.y0 - e.clientY;
+      if (Math.abs(dy) > 4) drag.moved = true;
+      if (drag.moved) setFromFader(i, drag.p0 + dy / usable(track));
+    });
+    const end = e => {
+      if (!drag || drag.id !== e.pointerId) return;
+      const moved = drag.moved; drag = null;
+      if (!moved) settle(i === to ? 1 : 0);          // toque: sube sola, de forma gradual
+      else settle(pOf(to) >= 0.5 ? 1 : 0);           // suelta: termina hacia el lado más cercano
+    };
+    track.addEventListener('pointerup', end);
+    track.addEventListener('pointercancel', end);
+    track.addEventListener('keydown', e => {
+      const up = ['ArrowUp', 'ArrowRight', 'Enter', ' '].includes(e.key), down = ['ArrowDown', 'ArrowLeft'].includes(e.key);
+      if (!up && !down) return;
+      e.preventDefault(); initAudio();
+      if (up && i !== active && beginTransition(i)) settle(1);
+      else if (down && i === active && beginTransition(i)) settle(1);
+    });
+  });
+  function nudge(fd) { fd.querySelector('.fcv').animate([{transform: 'translateY(0)'}, {transform: 'translateY(5px)'}, {transform: 'translateY(0)'}], {duration: 240, easing: 'ease-out'}); }
+
+  function onSettled(prev) {
+    if (active !== prev && AC && AC.state === 'running') playNote(cellNote(active === GOTAS ? 0 : active === PROY ? 2 : 4, 0), AC.currentTime + 0.01, 0.6);
+    if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+    applyModeUI();
+  }
+  function stepTransition(dt) {
+    if (to === null || drag || mixTarget === null) return;
+    const dir = mixTarget > mix ? 1 : -1;
+    mix += dir * dt * 1.15;
+    if ((dir > 0 && mix >= mixTarget) || (dir < 0 && mix <= mixTarget)) {
+      const prev = active;
+      active = mixTarget >= 1 ? to : from;
+      from = active; to = null; mix = 0; mixTarget = null;
+      onSettled(prev);
+    }
+  }
+  // Cada fader es una escala de caracteres: números cada 25 %, marcas cada 10 %, el tope [=]
+  // y, bajo él, la columna rellena con la rampa de densidad (más denso cerca del tope).
+  const FRAMP = '.:-=+*#';
+  function renderFaders() {
+    const css = getComputedStyle(document.documentElement);
+    const ink = css.getPropertyValue('--ink').trim() || '#e9eef2', hi = css.getPropertyValue('--hi').trim() || '#bfe9f2';
+    faders.forEach(fd => {
+      const i = +fd.dataset.i, p = pOf(i), track = fd.querySelector('.track'), c = fd.querySelector('.fcv');
+      const w = track.clientWidth, h = track.clientHeight;
+      const pct = Math.round(p * 100), on = to === null && i === active;
+      track.setAttribute('aria-valuenow', pct);
+      fd.classList.toggle('on', on);
+      if (!w || !h) return;
+      const d = Math.min(window.devicePixelRatio || 1, 2);
+      if (c.width !== Math.round(w * d) || c.height !== Math.round(h * d)) { c.width = Math.round(w * d); c.height = Math.round(h * d); }
+      const x = c.getContext('2d');
+      x.setTransform(d, 0, 0, d, 0, 0); x.clearRect(0, 0, w, h);
+      const fsz = w < 120 ? 11 : 13, lh = Math.round(fsz * 1.12);
+      x.font = `500 ${fsz}px ${FONT}`; x.textBaseline = 'middle';
+      const chw = x.measureText('M').width;
+      const nr = Math.max(5, Math.floor((h - 4) / lh)), top = (h - (nr - 1) * lh) / 2;
+      const x0 = Math.max(0, (w - 11 * chw) / 2);
+      const kr = Math.round((1 - p) * (nr - 1));
+      const labels = new Map();
+      [1, 0.75, 0.5, 0.25, 0].forEach(v => labels.set(Math.round((1 - v) * (nr - 1)), String(Math.round(v * 100)).padStart(3, '0')));
+      for (let r = 0; r < nr; r++) {
+        const y = top + r * lh, v = 1 - r / (nr - 1);
+        const tenth = Math.abs(v * 10 - Math.round(v * 10)) * (nr - 1) / 10 < 0.5;
+        let mid;
+        if (r === kr) mid = on ? '[#]' : '[=]';
+        else if (r > kr) { const tt = (nr - 1 - r) / Math.max(1, nr - 1 - kr), ch = FRAMP[Math.min(FRAMP.length - 1, Math.floor(tt * FRAMP.length))]; mid = ch + '|' + ch; }
+        else mid = labels.has(r) ? '=|=' : tenth ? '-|-' : ' | ';
+        x.fillStyle = ink; x.globalAlpha = 0.4;
+        if (labels.has(r)) x.fillText(labels.get(r), x0, y);
+        x.globalAlpha = r === kr ? 1 : on ? 0.85 : 0.45;
+        if (r === kr && on) x.fillStyle = hi;
+        x.fillText(mid, x0 + 4 * chw, y);
+        if (r === kr) { x.globalAlpha = 1; x.fillText(String(pct).padStart(3, '0'), x0 + 8 * chw, y); }
+      }
+      x.globalAlpha = 1;
+    });
+  }
+  function applyModeUI() {
+    const g = active === GOTAS && to === null;
+    if (!(active === PROY && to === null)) closeGallery(true);
+    stage.classList.toggle('off', !g);
+    document.querySelectorAll('[data-tab="rapidez"],[data-tab="sonido"]').forEach(b => { b.disabled = !g; });
+    if (!g && !$('#drawer').hidden && (curTab === 'rapidez' || curTab === 'sonido')) closeDrawer();
+    $('#grid').hidden = !(g && S.showGrid);
+    if (!g) $('#readout').textContent = '';
+    $('#hint').style.display = g ? '' : 'none';
+    $('#tag').textContent = ['proyectos', 'sobre mí', 'portafolio · facundo cabrera artus'][active];
+    ['proyectos', 'about'].forEach((name, m) => {
+      const L = $('#layer-' + name), on = to === null && active === m;
+      L.classList.toggle('live', on); L.setAttribute('aria-hidden', String(!on));
+    });
+  }
+
+  // ---------- estela del puntero (adaptación de WakeGlyph, de nikolas-sapa en 21st.dev) ----------
+  // El puntero estampa "calor" en las celdas que recorre; cada celda vuelve a su valor a una velocidad
+  // fijada al estamparla: pasada rápida = estela larga, fina y breve; pasada lenta = mancha gruesa que perdura.
+  const WAKE_CELL = 12, reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wakePtr = {x: 0, y: 0, t: 0, has: false};
+  let wakeLastT = 0;
+  function wakeStamp(px, py, rCells, rate) {
+    const R = Math.max(0.6, rCells) * WAKE_CELL;
+    const gx0 = Math.max(0, Math.floor((px - R) / cw)), gx1 = Math.min(cols - 1, Math.ceil((px + R) / cw));
+    const gy0 = Math.max(0, Math.floor((py - R) / chh)), gy1 = Math.min(rows - 1, Math.ceil((py + R) / chh));
+    for (let gy = gy0; gy <= gy1; gy++) for (let gx = gx0; gx <= gx1; gx++) {
+      const d = Math.hypot((gx + 0.5) * cw - px, (gy + 0.5) * chh - py) / R;
+      if (d > 1) continue;
+      const fo = 1 - d, i = gy * cols + gx;
+      if (fo > heat[i]) { heat[i] = fo; heatRate[i] = rate; }
+    }
+  }
+  function wakeMove(e) {
+    if (reduceMotion || !heat) return;
+    const r = stage.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, now = performance.now();
+    if (wakePtr.has) {
+      const dx = x - wakePtr.x, dy = y - wakePtr.y, dist = Math.hypot(dx, dy), speed = dist / Math.max(1, now - wakePtr.t);
+      const rc = Math.max(0.6, Math.min(2.6, 2.4 / (1 + speed * 1.6))), rate = Math.max(0.8, Math.min(4.5, 1 + speed * 3.2));
+      const steps = Math.max(1, Math.ceil(dist / (WAKE_CELL * 0.5)));
+      for (let s = 1; s <= steps; s++) wakeStamp(wakePtr.x + dx * s / steps, wakePtr.y + dy * s / steps, rc, rate);
+    } else wakeStamp(x, y, 1.4, 1.4);
+    wakePtr.x = x; wakePtr.y = y; wakePtr.t = now; wakePtr.has = true;
+  }
+  stage.addEventListener('pointermove', wakeMove);
+  stage.addEventListener('pointerleave', () => { wakePtr.has = false; });
+  function applyWake(t) {
+    const dt = wakeLastT ? Math.min(0.064, t - wakeLastT) : 1 / 30; wakeLastT = t;
+    if (!heat) return;
+    for (let i = 0; i < heat.length; i++) {
+      const h = heat[i];
+      if (h > 0) { if (h > field[i]) field[i] = h; const nh = h - heatRate[i] * dt; heat[i] = nh > 0 ? nh : 0; }
+    }
+  }
+
+  // ---------- dibujo ----------
+  function compose(t) {
+    compose0(t); applyWake(t);
+  }
+  function compose0(t) {
+    if (to === null) { computeMode(active, field, t); return; }
+    computeMode(from, fA, t); computeMode(to, fB, t);
+    const n = cols * rows, m = mix;
+    for (let i = 0; i < n; i++) {
+      const h = HASH[i], e = h - m;
+      let v = h < m ? fB[i] : fA[i];
+      if (e > -0.035 && e < 0.035) v += 0.7 * (1 - Math.abs(e) / 0.035);
+      field[i] = v;
+    }
+  }
+  function draw() {
+    const pal = PALETTES[S.palette] || PALETTES.noche;
+    const isPhrase = S.ramp === 'frase';
+    const ramp = Array.from(RAMPS[S.ramp] || RAMPS.digitos), n = ramp.length;
+    const asciiOnly = ramp.every(c => c.charCodeAt(0) < 128);
+    const phrase = Array.from(String(S.phrase || '').replace(/\s+/g, ' ')); const pn = phrase.length || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    ctx.fillStyle = pal.bg; ctx.fillRect(0, 0, W, H);
+    ctx.font = `500 ${fs}px ${FONT}`; ctx.textBaseline = 'top'; ctx.fillStyle = pal.ink;
+    const dark = pal.bg !== '#ecebe6', yo = (chh - fs) / 2;
+    const useOv = ov && weightOf(PROY) > 0;
+    for (let y = 0; y < rows; y++) {
+      const py = y * chh + yo;
+      if (isPhrase || !asciiOnly) {
+        for (let x = 0; x < cols; x++) {
+          if (useOv) { const o = ov[y * cols + x]; if (o !== undefined && projVis(y * cols + x)) { ctx.globalAlpha = 1; ctx.fillText(o, x * cw, py); continue; } }
+          let l = field[y * cols + x]; l = l < 0 ? 0 : l > 1 ? 1 : l;
+          let ch;
+          if (isPhrase) { if (l < 0.07) continue; ch = phrase[(y * cols + x) % pn] || ' '; if (ch === ' ') continue; ctx.globalAlpha = Math.round(Math.min(1, 0.12 + l) * 10) / 10; }
+          else { ch = ramp[Math.round(l * (n - 1))]; if (ch === ' ') continue; ctx.globalAlpha = l < 0.5 ? 0.55 : 1; }
+          ctx.fillText(ch, x * cw, py);
+        }
+        continue;
+      }
+      let dim = '', bri = '';
+      for (let x = 0; x < cols; x++) {
+        if (useOv) { const o = ov[y * cols + x]; if (o !== undefined && projVis(y * cols + x)) { dim += ' '; bri += o; continue; } }
+        let l = field[y * cols + x]; l = l < 0 ? 0 : l > 1 ? 1 : l;
+        const ch = ramp[Math.round(l * (n - 1))];
+        if (l < 0.55) { dim += ch; bri += ' '; } else { dim += ' '; bri += ch; }
+      }
+      ctx.globalAlpha = 0.5; ctx.fillText(dim, 0, py);
+      ctx.globalAlpha = 1;
+      if (S.glow && dark) { ctx.shadowColor = pal.ink; ctx.shadowBlur = fs * 0.9; }
+      ctx.fillText(bri, 0, py);
+      ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = 1;
+    $('#layer-proyectos').style.opacity = Math.pow(weightOf(PROY), 1.6).toFixed(3);
+    $('#layer-about').style.opacity = Math.pow(weightOf(ABOUT), 1.6).toFixed(3);
+  }
+
+  let lastFrame = 0, lastT = 0;
+  function loop(nowMs) {
+    requestAnimationFrame(loop);
+    const t = clock(), dt = lastT ? Math.min(0.1, t - lastT) : 0; lastT = t;
+    stepTransition(dt);
+    renderFaders();
+    stepDial(dt);
+    if (weightOf(PROY) > 0) updateProjText();
+    stepGallery(performance.now());
+    if (!cols || nowMs - lastFrame < 31) return;
+    lastFrame = nowMs;
+    if (!interacted && dropsOn() && t - lastAuto > 2.3) {
+      lastAuto = t;
+      spawn(W * (0.12 + Math.random() * 0.76), H * (0.25 + Math.random() * 0.5), false);
+    }
+    compose(t);
+    if (weightOf(PROY) > 0) buildWheelOverlay(); else ov = null;
+    draw();
+  }
+
+  // ---------- grilla ----------
+  function buildGrid() {
+    const g = $('#grid'); g.innerHTML = '';
+    for (let r = 0; r < 7; r++) for (let c = 0; c < 8; c++) {
+      const note = cellNote(r, c), el = document.createElement('div');
+      el.className = 'cell';
+      el.innerHTML = `<i>${c + 1}ª</i><b>${note.name}<small style="font-size:.6em;opacity:.6">${note.octave}</small></b>` + (c === 0 ? `<em>${MODES[r]}</em>` : '');
+      g.appendChild(el);
+    }
+    const ax = [['GRAVE', 'top:8px;left:8px'], ['AGUDO', 'bottom:8px;left:8px'], ['MAYOR', 'top:8px;right:8px'], ['MENOR', `top:calc(${5 / 7 * 100}% + 8px);right:8px`]];
+    ax.forEach(([t, st]) => { const a = document.createElement('div'); a.className = 'axis'; a.textContent = t; a.style.cssText = st; g.appendChild(a); });
+  }
+
+  // ---------- pestañas ----------
+  let curTab = 'color';
+  function openDrawer(tab) {
+    curTab = tab || curTab;
+    const b = document.querySelector(`[data-tab="${curTab}"]`); if (b && b.disabled) curTab = 'color';
+    $('#drawer').hidden = false;
+    document.querySelectorAll('[data-pane]').forEach(p => { p.hidden = p.dataset.pane !== curTab; });
+    document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === curTab)));
+    $('#chev').setAttribute('aria-expanded', 'true');
+  }
+  function closeDrawer() {
+    $('#drawer').hidden = true;
+    document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', 'false'));
+    $('#chev').setAttribute('aria-expanded', 'false');
+  }
+  document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+    if (!$('#drawer').hidden && curTab === b.dataset.tab) closeDrawer(); else openDrawer(b.dataset.tab);
+  }));
+  $('#chev').addEventListener('click', () => { $('#drawer').hidden ? openDrawer() : closeDrawer(); });
+
+  const palBox = $('#palettes');
+  Object.entries(PALETTES).forEach(([k, p]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.pal = k;
+    b.innerHTML = `<span class="sw" style="background:${p.bg};box-shadow:inset 0 0 0 4px ${p.bg},inset 0 0 0 7px ${p.ink}"></span>${p.name}`;
+    b.addEventListener('click', () => { S.palette = k; sync(); });
+    palBox.appendChild(b);
+  });
+  const keyBox = $('#keys');
+  KEYS.forEach(([name], i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = name; b.dataset.key = i;
+    b.addEventListener('click', () => { S.key = i; sync(); buildGrid(); });
+    keyBox.appendChild(b);
+  });
+
+  const inputs = [...document.querySelectorAll('[data-k]')];
+  inputs.forEach(el => {
+    const k = el.dataset.k;
+    if (el.type === 'checkbox') el.checked = !!S[k]; else el.value = S[k];
+    el.addEventListener('input', () => {
+      S[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? parseFloat(el.value) : el.value;
+      if (k === 'size') layout();
+      sync();
+    });
+  });
+
+  function sync() {
+    $('#o-size').textContent = S.size + ' px';
+    $('#o-fall').textContent = S.fall.toFixed(2) + ' s';
+    $('#o-flow').textContent = '×' + S.flow.toFixed(2);
+    $('#o-spread').textContent = '×' + S.spread.toFixed(2);
+    $('#o-q').textContent = 'Q ' + S.q;
+    $('#o-vol').textContent = Math.round(S.vol * 100) + '%';
+    $('#o-key').textContent = KEYS[S.key][0] + ' mayor';
+    $('#phraseCtl').hidden = S.ramp !== 'frase';
+    palBox.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pal === S.palette)));
+    keyBox.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.key === S.key)));
+    const pal = PALETTES[S.palette] || PALETTES.noche;
+    $('#hero').style.setProperty('--stage-bg', pal.bg);
+    document.documentElement.style.setProperty('--pal-bg', pal.bg);
+    document.documentElement.style.setProperty('--pal-ink', pal.ink);
+    if (master) master.gain.value = S.vol;
+    applyModeUI();
+    save();
+  }
+
+  buildGrid(); sync(); measure();
+  if (document.fonts && document.fonts.load) document.fonts.load(`500 12px "IBM Plex Mono"`).then(measure).catch(() => {});
+  requestAnimationFrame(loop);
+
+  // ---------- contacto ----------
+  $('#copyMail').addEventListener('click', () => {
+    const t = $('#mail').textContent;
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents($('#mail')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Correo seleccionado: copia con Ctrl+C'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => toast('Correo copiado')).catch(fallback);
+    else fallback();
+  });
+
+  // Fondo de la bienvenida: campo WakeGlyph completo (dispersión tenue en reposo + estela del puntero).
+  function introWake(host) {
+    const cv2 = document.createElement('canvas'); cv2.className = 'wake'; host.prepend(cv2);
+    const x = cv2.getContext('2d'), RAMP = ' .:-=+*#%@', CELL = 14;
+    let d = 1, nc = 0, nr = 0, ht = new Float32Array(0), rt = new Float32Array(0), amb = new Float32Array(0), last = 0, raf = 0;
+    const ptr = {x: 0, y: 0, t: 0, has: false};
+    const rnd = (seed => () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; })(0xa53f9c1);
+    function size() {
+      d = Math.min(window.devicePixelRatio || 1, 2);
+      const w = host.clientWidth, h = host.clientHeight;
+      cv2.width = Math.max(1, Math.round(w * d)); cv2.height = Math.max(1, Math.round(h * d));
+      nc = Math.ceil(w / CELL); nr = Math.ceil(h / CELL);
+      const n = nc * nr; ht = new Float32Array(n); rt = new Float32Array(n).fill(1.4); amb = new Float32Array(n);
+      for (let i = 0; i < n; i++) if (rnd() < 0.035) amb[i] = 0.08 + rnd() * 0.14;
+    }
+    function stampW(px, py, rc, rate) {
+      const cx = px / CELL, cy = py / CELL, r = Math.max(0.6, rc);
+      for (let gy = Math.max(0, Math.floor(cy - r)); gy <= Math.min(nr - 1, Math.ceil(cy + r)); gy++)
+        for (let gx = Math.max(0, Math.floor(cx - r)); gx <= Math.min(nc - 1, Math.ceil(cx + r)); gx++) {
+          const dd = Math.hypot(gx + 0.5 - cx, gy + 0.5 - cy); if (dd > r) continue;
+          const fo = 1 - dd / r, i = gy * nc + gx; if (fo > ht[i]) { ht[i] = fo; rt[i] = rate; }
+        }
+    }
+    function draw() {
+      const ink = getComputedStyle(document.documentElement).getPropertyValue('--pal-ink').trim() || '#e9eef2';
+      x.setTransform(d, 0, 0, d, 0, 0); x.clearRect(0, 0, cv2.width, cv2.height);
+      x.font = `500 ${CELL * 0.85}px ${FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = ink;
+      for (let gy = 0; gy < nr; gy++) for (let gx = 0; gx < nc; gx++) {
+        const i = gy * nc + gx, l = Math.max(amb[i], ht[i]); if (l <= 0.03) continue;
+        const ch = RAMP[Math.min(RAMP.length - 1, Math.floor(l * (RAMP.length - 1)))]; if (ch === ' ') continue;
+        x.globalAlpha = Math.min(1, 0.15 + l * 0.85); x.fillText(ch, gx * CELL + CELL / 2, gy * CELL + CELL / 2);
+      }
+      x.globalAlpha = 1;
+    }
+    function frame(now) {
+      if (!host.isConnected) return;
+      const dt = last ? Math.min(64, now - last) / 1000 : 1 / 60; last = now;
+      for (let i = 0; i < ht.length; i++) if (ht[i] > 0) { ht[i] -= rt[i] * dt; if (ht[i] < 0) ht[i] = 0; }
+      draw(); raf = requestAnimationFrame(frame);
+    }
+    host.addEventListener('pointermove', e => {
+      const r = host.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, now = performance.now();
+      if (ptr.has) {
+        const dx = px - ptr.x, dy = py - ptr.y, dist = Math.hypot(dx, dy), sp = dist / Math.max(1, now - ptr.t);
+        const rc = Math.max(0.6, Math.min(2.6, 2.4 / (1 + sp * 1.6))), rate = Math.max(0.8, Math.min(4.5, 1 + sp * 3.2));
+        const steps = Math.max(1, Math.ceil(dist / (CELL * 0.5)));
+        for (let s = 1; s <= steps; s++) stampW(ptr.x + dx * s / steps, ptr.y + dy * s / steps, rc, rate);
+      } else stampW(px, py, 1.4, 1.4);
+      ptr.x = px; ptr.y = py; ptr.t = now; ptr.has = true;
+    });
+    host.addEventListener('pointerleave', () => { ptr.has = false; });
+    window.addEventListener('resize', size);
+    size();
+    if (reduceMotion) draw(); else raf = requestAnimationFrame(frame);
+  }
+
+  // ---------- bienvenida ----------
+  // La frase se forma carácter por carácter; al tocar, se activa el audio y sus letras caen como gotas al agua.
+  (() => {
+    const el = $('#intro'), ph = $('#introPhrase'), btn = $('#introEnter');
+    let seen = false; try { seen = sessionStorage.getItem('pg-intro') === '1'; } catch (e) {}
+    if (seen) { el.remove(); return; }
+    document.documentElement.style.overflow = 'hidden';
+    introWake(el);
+    const text = 'Doy forma a lo tangible y estructura a lo invisible.';
+    const letters = [];
+    text.split(' ').forEach((word, wi, arr) => {
+      const w = document.createElement('span'); w.className = 'w'; w.setAttribute('aria-hidden', 'true');
+      for (const ch of word) { const s = document.createElement('span'); s.className = 'l'; s.dataset.ch = ch; s.textContent = ch; s.style.opacity = '0'; w.appendChild(s); letters.push(s); }
+      ph.appendChild(w);
+      if (wi < arr.length - 1) ph.appendChild(document.createTextNode(' '));
+    });
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const SCR = '01#%@*+=-:.';
+    const t0 = performance.now();
+    letters.forEach((s, k) => { s.dataset.at = String(300 + k * 26 + Math.random() * 260); });
+    let entered = false;
+    function form(now) {
+      if (entered) return;
+      const e = now - t0; let done = true;
+      for (const s of letters) {
+        const at = +s.dataset.at;
+        if (e < at - 280) { done = false; }
+        else if (e < at) { s.style.opacity = '1'; s.textContent = SCR[(Math.random() * SCR.length) | 0]; done = false; }
+        else if (s.textContent !== s.dataset.ch || s.style.opacity !== '1') { s.textContent = s.dataset.ch; s.style.opacity = '1'; }
+      }
+      if (!done) requestAnimationFrame(form);
+      else setTimeout(() => { btn.classList.add('on'); $('#introNote').classList.add('on'); btn.focus({preventScroll: true}); }, 350);
+    }
+    if (reduce) { letters.forEach(s => { s.style.opacity = '1'; }); btn.classList.add('on'); $('#introNote').classList.add('on'); }
+    else requestAnimationFrame(form);
+
+    function enter() {
+      if (entered) return;
+      entered = true;
+      initAudio();
+      try { sessionStorage.setItem('pg-intro', '1'); } catch (e) {}
+      letters.forEach(s => { s.textContent = s.dataset.ch; s.style.opacity = '1'; });
+      el.classList.add('leaving');
+      document.documentElement.style.overflow = '';
+      lastAuto = clock() + 5;
+      const sr = stage.getBoundingClientRect(), step = 45, dur = S.fall * 1000;
+      letters.forEach((s, k) => {
+        const r = s.getBoundingClientRect();
+        const x = r.left + r.width / 2 - sr.left, y0 = r.top + r.height / 2 - sr.top;
+        const ty = Math.max(y0 + 40, H * (0.42 + Math.random() * 0.2));
+        const delay = k * step;
+        if (reduce) s.animate([{opacity: 1}, {opacity: 0}], {duration: 400, delay, fill: 'forwards'});
+        else s.animate([
+          {transform: 'translateY(0)', opacity: 1},
+          {transform: `translateY(${(ty - y0).toFixed(1)}px)`, opacity: 1, offset: 0.96},
+          {transform: `translateY(${(ty - y0).toFixed(1)}px)`, opacity: 0}
+        ], {duration: dur, delay, easing: 'cubic-bezier(.55,0,1,.45)', fill: 'forwards'});
+        setTimeout(() => { if (x >= 0 && x <= W && ty > 0 && ty < H) spawn(x, ty, true, {noChain: true, gain: 0.4}); }, delay);
+      });
+      setTimeout(() => el.remove(), letters.length * step + dur + 400);
+    }
+    el.addEventListener('click', enter);
+    el.addEventListener('keydown', e => { if (['Enter', ' ', 'Escape'].includes(e.key)) { e.preventDefault(); enter(); } });
+  })();
+})();
+</script>
+
+</body>
+</html>
